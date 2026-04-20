@@ -87,6 +87,10 @@ public final class AtlasCommand {
                     .then(Commands.argument("radius", IntegerArgumentType.integer(1, 256))
                         .executes(AtlasCommand::executePregenVanilla)))
                 .then(Commands.literal("cancel").executes(AtlasCommand::executeCancel))
+                .then(Commands.literal("accelerate")
+                    .then(Commands.literal("on").executes(ctx -> setAccelerate(ctx, true)))
+                    .then(Commands.literal("off").executes(ctx -> setAccelerate(ctx, false)))
+                    .then(Commands.literal("status").executes(AtlasCommand::accelerateStatus)))
         );
     }
 
@@ -550,6 +554,45 @@ public final class AtlasCommand {
                 scheduleBatchedForceLoad(server, level, positions, state, end);
             }
         });
+    }
+
+    private static int setAccelerate(com.mojang.brigadier.context.CommandContext<CommandSourceStack> ctx, boolean on) {
+        CommandSourceStack src = ctx.getSource();
+        dev.xssmusashi.atlas.mc.bridge.AcceleratedRouter.setSubstituteEnabled(on);
+        sendMessage(src, "§6[Atlas] §rsubstitute mode: " + (on ? "§aON" : "§7OFF"));
+        if (on) {
+            sendMessage(src, "§7  WARNING: substituting density evaluation. If terrain looks wrong, /atlas accelerate off");
+        }
+        return 1;
+    }
+
+    private static int accelerateStatus(com.mojang.brigadier.context.CommandContext<CommandSourceStack> ctx) {
+        CommandSourceStack src = ctx.getSource();
+        var ar = dev.xssmusashi.atlas.mc.bridge.AcceleratedRouter.class;
+        boolean on = dev.xssmusashi.atlas.mc.bridge.AcceleratedRouter.isSubstituteEnabled();
+        long subs = dev.xssmusashi.atlas.mc.bridge.AcceleratedRouter.substitutedCalls();
+        long fb = dev.xssmusashi.atlas.mc.bridge.AcceleratedRouter.fallbackCalls();
+        int cache = dev.xssmusashi.atlas.mc.bridge.AcceleratedRouter.cacheSize();
+        int conv = dev.xssmusashi.atlas.mc.bridge.AcceleratedRouter.convertibleEntries();
+        long bridgeOk = dev.xssmusashi.atlas.mc.bridge.DfcBridge.convertedCount();
+        long bridgeFail = dev.xssmusashi.atlas.mc.bridge.DfcBridge.unconvertedCount();
+        var unsupported = dev.xssmusashi.atlas.mc.bridge.DfcBridge.unsupportedTypes();
+
+        sendMessage(src, "§6§l[Atlas] §raccelerator status:");
+        sendMessage(src, "§7  substitute mode:    §f" + (on ? "§aON" : "§7OFF"));
+        sendMessage(src, "§7  generators cached:  §f" + cache + " (§a" + conv + " convertible§7)");
+        sendMessage(src, "§7  DfcBridge conv ok:  §a" + bridgeOk + "§7, fail: §c" + bridgeFail);
+        sendMessage(src, "§7  substituted calls:  §a" + subs);
+        sendMessage(src, "§7  fallback calls:     §c" + fb);
+        if (!unsupported.isEmpty()) {
+            sendMessage(src, "§7  unsupported types (top 5):");
+            int count = 0;
+            for (String t : unsupported) {
+                sendMessage(src, "§7    " + t.substring(Math.max(0, t.lastIndexOf('.') + 1)));
+                if (++count >= 5) break;
+            }
+        }
+        return 1;
     }
 
     private static int executeCancel(com.mojang.brigadier.context.CommandContext<CommandSourceStack> ctx) {

@@ -5,7 +5,8 @@
   "mixins": [
     "ServerTickMixin",
     "NoiseChunkGenObserveMixin",
-    "NoiseChunkGenTimingMixin"
+    "NoiseChunkGenTimingMixin",
+    "NoiseChunkGenSubstituteMixin"
   ],
   "injectors": {
     "defaultRequire": -1
