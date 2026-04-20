@@ -21,6 +21,17 @@ dependencies {
 
     implementation(project(":atlas-core"))
     include(project(":atlas-core"))
+
+    // atlas-core depends on zstd-jni; Loom's include(project) does NOT bundle
+    // transitive deps, so we list zstd-jni explicitly. Without this, the .atr
+    // serializer crashes with NoClassDefFoundError at runtime.
+    implementation("com.github.luben:zstd-jni:1.5.6-7")
+    include("com.github.luben:zstd-jni:1.5.6-7")
+
+    // gson is also a transitive of atlas-core (DfcLoader); MC ships gson, but
+    // bundle ours to guarantee the version we tested with.
+    implementation("com.google.code.gson:gson:2.11.0")
+    include("com.google.code.gson:gson:2.11.0")
 }
 
 loom {

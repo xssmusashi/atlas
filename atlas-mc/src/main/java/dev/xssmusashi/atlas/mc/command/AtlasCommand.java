@@ -55,7 +55,7 @@ public final class AtlasCommand {
                 .then(Commands.literal("bench").executes(AtlasCommand::executeBench))
                 .then(Commands.literal("validate").executes(AtlasCommand::executeValidate))
                 .then(Commands.literal("pregen")
-                    .then(Commands.argument("chunks", IntegerArgumentType.integer(64, 50000))
+                    .then(Commands.argument("radius", IntegerArgumentType.integer(1, 256))
                         .executes(ctx -> executePregen(ctx, false))
                         .then(Commands.literal("persist")
                             .executes(ctx -> executePregen(ctx, true)))))
@@ -138,28 +138,34 @@ public final class AtlasCommand {
 
     private static int executePregen(com.mojang.brigadier.context.CommandContext<CommandSourceStack> ctx, boolean persist) {
         CommandSourceStack src = ctx.getSource();
-        int requestedChunks = IntegerArgumentType.getInteger(ctx, "chunks");
+        int radius = IntegerArgumentType.getInteger(ctx, "radius");      // chunks
         int parallelism = Math.max(1, Runtime.getRuntime().availableProcessors() - 1);
 
-        int tiles = (requestedChunks + 63) / 64;
+        // Square area: side = 2 * radius chunks. Round up to whole tiles (8 chunks each).
+        int sideChunks = radius * 2;
+        int sideTiles  = (sideChunks + 7) / 8;
+        int tiles      = sideTiles * sideTiles;
         int actualChunks = tiles * 64;
-        int sideLen = (int) Math.ceil(Math.sqrt(tiles));
 
-        int playerTileX, playerTileZ;
+        int playerChunkX, playerChunkZ;
         try {
             var pos = src.getPosition();
-            playerTileX = (int) Math.floor(pos.x() / 128.0);
-            playerTileZ = (int) Math.floor(pos.z() / 128.0);
+            playerChunkX = (int) Math.floor(pos.x() / 16.0);
+            playerChunkZ = (int) Math.floor(pos.z() / 16.0);
         } catch (Throwable t) {
-            playerTileX = 0;
-            playerTileZ = 0;
+            playerChunkX = 0;
+            playerChunkZ = 0;
         }
-        int originTileX = playerTileX - sideLen / 2;
-        int originTileZ = playerTileZ - sideLen / 2;
+        // Origin tile is the tile containing the south-west corner of the area.
+        int originChunkX = playerChunkX - radius;
+        int originChunkZ = playerChunkZ - radius;
+        int originTileX  = Math.floorDiv(originChunkX, 8);
+        int originTileZ  = Math.floorDiv(originChunkZ, 8);
 
-        sendMessage(src, "§6§l[Atlas] §rpregen: " + actualChunks + " chunks ("
-            + tiles + " tiles, " + sideLen + "x" + sideLen + " grid) around tile ("
-            + playerTileX + "," + playerTileZ + "), parallelism " + parallelism
+        sendMessage(src, "§6§l[Atlas] §rpregen: radius " + radius + " chunks → "
+            + sideChunks + "×" + sideChunks + " square ("
+            + actualChunks + " chunks, " + sideTiles + "×" + sideTiles + " tiles), "
+            + "parallelism " + parallelism
             + (persist ? ", §epersist→atlas-tiles/" : "") + "...");
 
         DfcNode tree = buildBenchTree();
@@ -184,10 +190,8 @@ public final class AtlasCommand {
 
             CompletableFuture<?>[] futs = new CompletableFuture[tiles];
             int submitted = 0;
-            outer:
-            for (int dz = 0; dz < sideLen; dz++) {
-                for (int dx = 0; dx < sideLen; dx++) {
-                    if (submitted >= tiles) break outer;
+            for (int dz = 0; dz < sideTiles; dz++) {
+                for (int dx = 0; dx < sideTiles; dx++) {
                     futs[submitted++] = pipeline.generate(
                         new TileCoord(originTileX + dx, originTileZ + dz));
                 }
@@ -242,8 +246,8 @@ public final class AtlasCommand {
         sendMessage(src, "§7  throughput:    §a" + String.format("%.1f cps §7(%.1f tiles/sec)", cps, tilesPerSec));
         sendMessage(src, "§7  parallelism:   §f" + parallelism + " threads");
         sendMessage(src, "§7  peak heap:     §f" + (peakHeapBytes / (1024 * 1024)) + " MB");
-        sendMessage(src, "§7  centred on:    §ftile (" + playerTileX + ", " + playerTileZ
-            + ") = block (" + (playerTileX * 128) + ", " + (playerTileZ * 128) + ")");
+        sendMessage(src, "§7  centred on:    §fchunk (" + playerChunkX + ", " + playerChunkZ
+            + ") = block (" + (playerChunkX * 16) + ", " + (playerChunkZ * 16) + ")");
         if (persist) {
             sendMessage(src, "§7  persisted:     §a" + (bytesWritten / 1024) + " KB to ./atlas-tiles/");
             sendMessage(src, "§7  try: §e/atlas list§7 / §e/atlas map");
