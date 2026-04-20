@@ -2,6 +2,7 @@ package dev.xssmusashi.atlas.core.pool;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinWorkerThread;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
@@ -21,16 +22,46 @@ public final class DagScheduler implements AutoCloseable {
     private final AtomicLong completed = new AtomicLong();
 
     public DagScheduler(int parallelism, int maxInflightTasks) {
+        this(parallelism, maxInflightTasks, Thread.NORM_PRIORITY);
+    }
+
+    /**
+     * @param threadPriority Thread priority for worker threads. Use
+     *   {@link Thread#MIN_PRIORITY} for background work that must yield to
+     *   foreground threads (e.g. game render thread, server tick thread)
+     *   when CPU is contended. Use {@link Thread#NORM_PRIORITY} for
+     *   benchmarks and CLI tools where Atlas owns the machine.
+     */
+    public DagScheduler(int parallelism, int maxInflightTasks, int threadPriority) {
         if (parallelism < 1) throw new IllegalArgumentException("parallelism must be >= 1");
         if (maxInflightTasks < 1) throw new IllegalArgumentException("maxInflightTasks must be >= 1");
-        this.pool = new ForkJoinPool(parallelism);
+        if (threadPriority < Thread.MIN_PRIORITY || threadPriority > Thread.MAX_PRIORITY) {
+            throw new IllegalArgumentException("threadPriority out of range");
+        }
+        ForkJoinPool.ForkJoinWorkerThreadFactory factory = parent -> {
+            ForkJoinWorkerThread t = ForkJoinPool.defaultForkJoinWorkerThreadFactory.newThread(parent);
+            t.setPriority(threadPriority);
+            t.setName("atlas-worker-" + t.getPoolIndex());
+            t.setDaemon(true);
+            return t;
+        };
+        this.pool = new ForkJoinPool(parallelism, factory, null, false);
         this.inflightLimit = new Semaphore(maxInflightTasks);
     }
 
-    /** Default: nCpus - 1 worker threads, max 64 in-flight tasks. */
+    /** Default: nCpus - 1 worker threads, max 64 in-flight tasks, NORM priority. */
     public static DagScheduler defaultPool() {
         int p = Math.max(1, Runtime.getRuntime().availableProcessors() - 1);
         return new DagScheduler(p, 64);
+    }
+
+    /**
+     * Background pool sized at half the cores (good headroom for the game thread)
+     * with low-priority workers. Use this from in-game commands.
+     */
+    public static DagScheduler backgroundPool() {
+        int p = Math.max(1, Runtime.getRuntime().availableProcessors() / 2);
+        return new DagScheduler(p, p * 4, Thread.MIN_PRIORITY);
     }
 
     public int parallelism() {

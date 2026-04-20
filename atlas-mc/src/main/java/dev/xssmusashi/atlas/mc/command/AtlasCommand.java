@@ -57,9 +57,13 @@ public final class AtlasCommand {
                 .then(Commands.literal("validate").executes(AtlasCommand::executeValidate))
                 .then(Commands.literal("pregen")
                     .then(Commands.argument("radius", IntegerArgumentType.integer(1, 256))
-                        .executes(ctx -> executePregen(ctx, false))
+                        .executes(ctx -> executePregen(ctx, false, -1))
                         .then(Commands.literal("persist")
-                            .executes(ctx -> executePregen(ctx, true)))))
+                            .executes(ctx -> executePregen(ctx, true, -1))
+                            .then(Commands.argument("threads", IntegerArgumentType.integer(1, 64))
+                                .executes(ctx -> executePregen(ctx, true, IntegerArgumentType.getInteger(ctx, "threads")))))
+                        .then(Commands.argument("threads", IntegerArgumentType.integer(1, 64))
+                            .executes(ctx -> executePregen(ctx, false, IntegerArgumentType.getInteger(ctx, "threads"))))))
                 .then(Commands.literal("map").executes(AtlasCommand::executeMap))
                 .then(Commands.literal("list").executes(AtlasCommand::executeList))
         );
@@ -142,10 +146,14 @@ public final class AtlasCommand {
         return 1;
     }
 
-    private static int executePregen(com.mojang.brigadier.context.CommandContext<CommandSourceStack> ctx, boolean persist) {
+    private static int executePregen(com.mojang.brigadier.context.CommandContext<CommandSourceStack> ctx,
+                                      boolean persist, int requestedThreads) {
         CommandSourceStack src = ctx.getSource();
         int radius = IntegerArgumentType.getInteger(ctx, "radius");      // chunks
-        int parallelism = Math.max(1, Runtime.getRuntime().availableProcessors() - 1);
+        // Default: half the cores. User can override via threads argument.
+        int parallelism = requestedThreads > 0
+            ? requestedThreads
+            : Math.max(1, Runtime.getRuntime().availableProcessors() / 2);
 
         // Square area: side = 2 * radius chunks. Round up to whole tiles (8 chunks each).
         int sideChunks = radius * 2;
@@ -193,7 +201,9 @@ public final class AtlasCommand {
         long t0 = System.nanoTime();
         long peakHeapBytes;
         long bytesWritten = 0;
-        try (DagScheduler sched = new DagScheduler(parallelism, parallelism * 4);
+        // Background pool: low-priority workers so MC's render/tick threads keep
+        // CPU when contended. Without this, /atlas pregen makes the game unplayable.
+        try (DagScheduler sched = new DagScheduler(parallelism, parallelism * 4, Thread.MIN_PRIORITY);
              TilePipeline pipeline = new TilePipeline(0xC0FFEEL, sampler, sched)) {
 
             // STREAM each tile: as soon as a tile completes on a worker thread,
