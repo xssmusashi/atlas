@@ -1,6 +1,7 @@
 package dev.xssmusashi.atlas.mc.command;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import dev.xssmusashi.atlas.core.dfc.DfcNode;
 import dev.xssmusashi.atlas.core.jit.CompiledSampler;
 import dev.xssmusashi.atlas.core.jit.JitCompiler;
@@ -38,12 +39,15 @@ public final class AtlasCommand {
     }
 
     private static void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher) {
-        // Read-only commands (info / bench / validate) — safe for any player.
+        // Read-only commands — safe for any player.
         dispatcher.register(
             Commands.literal("atlas")
                 .then(Commands.literal("info").executes(AtlasCommand::executeInfo))
                 .then(Commands.literal("bench").executes(AtlasCommand::executeBench))
                 .then(Commands.literal("validate").executes(AtlasCommand::executeValidate))
+                .then(Commands.literal("pregen")
+                    .then(Commands.argument("chunks", IntegerArgumentType.integer(64, 50000))
+                        .executes(AtlasCommand::executePregen)))
         );
     }
 
@@ -116,6 +120,83 @@ public final class AtlasCommand {
                 try { ((Tile) f.get()).close(); } catch (Exception ignored) {}
             }
         }
+        return 1;
+    }
+
+    private static int executePregen(com.mojang.brigadier.context.CommandContext<CommandSourceStack> ctx) {
+        CommandSourceStack src = ctx.getSource();
+        int requestedChunks = IntegerArgumentType.getInteger(ctx, "chunks");
+        int parallelism = Math.max(1, Runtime.getRuntime().availableProcessors() - 1);
+
+        // Round up chunks to a whole number of 8x8 tiles (each tile = 64 chunks).
+        int tiles = (requestedChunks + 63) / 64;
+        int actualChunks = tiles * 64;
+
+        // Square-ish layout for tiles, centred on player.
+        int sideLen = (int) Math.ceil(Math.sqrt(tiles));
+
+        int playerTileX, playerTileZ;
+        try {
+            var pos = src.getPosition();
+            playerTileX = (int) Math.floor(pos.x() / 128.0);
+            playerTileZ = (int) Math.floor(pos.z() / 128.0);
+        } catch (Throwable t) {
+            playerTileX = 0;
+            playerTileZ = 0;
+        }
+        int originTileX = playerTileX - sideLen / 2;
+        int originTileZ = playerTileZ - sideLen / 2;
+
+        sendMessage(src, "§6§l[Atlas] §rpregen: " + actualChunks + " chunks ("
+            + tiles + " tiles, " + sideLen + "x" + sideLen + " grid) around tile ("
+            + playerTileX + "," + playerTileZ + "), parallelism " + parallelism + "...");
+
+        DfcNode tree = buildBenchTree();
+        CompiledSampler sampler = JitCompiler.compile(tree, JitOptions.DEFAULT);
+
+        long t0 = System.nanoTime();
+        long peakHeapBytes;
+        try (DagScheduler sched = new DagScheduler(parallelism, parallelism * 4);
+             TilePipeline pipeline = new TilePipeline(0xC0FFEEL, sampler, sched)) {
+
+            CompletableFuture<?>[] futs = new CompletableFuture[tiles];
+            int submitted = 0;
+            outer:
+            for (int dz = 0; dz < sideLen; dz++) {
+                for (int dx = 0; dx < sideLen; dx++) {
+                    if (submitted >= tiles) break outer;
+                    futs[submitted++] = pipeline.generate(
+                        new TileCoord(originTileX + dx, originTileZ + dz));
+                }
+            }
+            try {
+                CompletableFuture.allOf(futs).get();
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+                sendMessage(src, "§c[Atlas] interrupted");
+                return 0;
+            } catch (ExecutionException ee) {
+                sendMessage(src, "§c[Atlas] failed: " + ee.getCause().getMessage());
+                return 0;
+            }
+            peakHeapBytes = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+            for (CompletableFuture<?> f : futs) {
+                try { ((Tile) f.get()).close(); } catch (Exception ignored) {}
+            }
+        }
+        long elapsedMs = (System.nanoTime() - t0) / 1_000_000;
+        double cps = actualChunks * 1000.0 / Math.max(1, elapsedMs);
+        double tilesPerSec = tiles * 1000.0 / Math.max(1, elapsedMs);
+
+        sendMessage(src, "§6§l[Atlas] §rpregen complete:");
+        sendMessage(src, "§7  generated:     §a" + actualChunks + " chunks");
+        sendMessage(src, "§7  elapsed:       §f" + elapsedMs + " ms");
+        sendMessage(src, "§7  throughput:    §a" + String.format("%.1f cps §7(%.1f tiles/sec)", cps, tilesPerSec));
+        sendMessage(src, "§7  parallelism:   §f" + parallelism + " threads");
+        sendMessage(src, "§7  peak heap:     §f" + (peakHeapBytes / (1024 * 1024)) + " MB");
+        sendMessage(src, "§7  centred on:    §ftile (" + playerTileX + ", " + playerTileZ
+            + ") = block (" + (playerTileX * 128) + ", " + (playerTileZ * 128) + ")");
+        sendMessage(src, "§7  (noise-only — vanilla still owns blocks/biomes/features in the world)");
         return 1;
     }
 
