@@ -2,7 +2,17 @@
 
 Next-generation Minecraft worldgen for Fabric: tile-based pipeline, JIT-compiled DensityFunction (Vector API + ASM), parallel DAG scheduler. Targets ≥1500 chunks/second on a 16-core CPU.
 
-**Status:** Phase 1 — bootstrap. Not yet usable in-game.
+**Status:** Phase 1 — sub-plan 2 (arithmetic + control nodes). Not yet usable in-game.
+
+## Phase 1 progress
+
+- ✅ Sub-plan 1 (`v0.1.0-bootstrap`): multi-module project, Constant JIT, JMH baseline.
+- ✅ Sub-plan 2 (`v0.2.0-arithmetic`): positional + arithmetic + control nodes, **24.7× JIT speedup** on a 15-op tree (honest loop bench).
+- ⏳ Sub-plan 3: Noise nodes (Perlin/Simplex) + `sampleSlice16` + Vector API emitter.
+- ⏳ Sub-plan 4: Tile pipeline + DAG scheduler.
+- ⏳ Sub-plan 5: Region storage (.atr format).
+- ⏳ Sub-plan 6: Real Fabric Loom integration + ChunkGenerator.
+- ⏳ Sub-plan 7: Phase 1 acceptance bench (≥1500 cps end-to-end vs C2ME).
 
 **Target:** Minecraft 26.1, Fabric loader, JDK 25.
 
