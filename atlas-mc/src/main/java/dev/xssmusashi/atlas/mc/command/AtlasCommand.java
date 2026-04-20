@@ -10,23 +10,22 @@ import dev.xssmusashi.atlas.core.tile.Tile;
 import dev.xssmusashi.atlas.core.tile.TileCoord;
 import dev.xssmusashi.atlas.core.tile.TilePipeline;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.Component;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 /**
- * In-game commands for inspecting and benchmarking Atlas.
+ * In-game commands for inspecting and benchmarking Atlas. Built against MC 26.1+
+ * Mojang names (unobfuscated MC).
+ *
  * <ul>
  *   <li>{@code /atlas info} — version, JIT mode, parallelism, current state</li>
  *   <li>{@code /atlas bench} — run a small tile-pipeline benchmark and report cps in chat</li>
  *   <li>{@code /atlas validate} — verify JIT vs interpreter on a random tree (correctness check)</li>
  * </ul>
- * <p>
- * Commands run on the server thread but kick benchmark work to a private DAG scheduler
- * to avoid stalling the main loop.
  */
 public final class AtlasCommand {
 
@@ -38,18 +37,18 @@ public final class AtlasCommand {
         });
     }
 
-    private static void registerCommands(CommandDispatcher<ServerCommandSource> dispatcher) {
+    private static void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher) {
+        // Read-only commands (info / bench / validate) — safe for any player.
         dispatcher.register(
-            CommandManager.literal("atlas")
-                .requires(source -> source.hasPermissionLevel(2))
-                .then(CommandManager.literal("info").executes(AtlasCommand::executeInfo))
-                .then(CommandManager.literal("bench").executes(AtlasCommand::executeBench))
-                .then(CommandManager.literal("validate").executes(AtlasCommand::executeValidate))
+            Commands.literal("atlas")
+                .then(Commands.literal("info").executes(AtlasCommand::executeInfo))
+                .then(Commands.literal("bench").executes(AtlasCommand::executeBench))
+                .then(Commands.literal("validate").executes(AtlasCommand::executeValidate))
         );
     }
 
-    private static int executeInfo(com.mojang.brigadier.context.CommandContext<ServerCommandSource> ctx) {
-        ServerCommandSource src = ctx.getSource();
+    private static int executeInfo(com.mojang.brigadier.context.CommandContext<CommandSourceStack> ctx) {
+        CommandSourceStack src = ctx.getSource();
         int cores = Runtime.getRuntime().availableProcessors();
         long maxHeap = Runtime.getRuntime().maxMemory() / (1024 * 1024);
         boolean vectorAvailable = isVectorApiAvailable();
@@ -73,14 +72,13 @@ public final class AtlasCommand {
         }
     }
 
-    private static int executeBench(com.mojang.brigadier.context.CommandContext<ServerCommandSource> ctx) {
-        ServerCommandSource src = ctx.getSource();
+    private static int executeBench(com.mojang.brigadier.context.CommandContext<CommandSourceStack> ctx) {
+        CommandSourceStack src = ctx.getSource();
         int parallelism = Math.max(1, Runtime.getRuntime().availableProcessors() - 1);
         int tilesToGen = 8;
 
         sendMessage(src, "§6§l[Atlas] §rrunning bench: " + tilesToGen + " tiles, parallelism " + parallelism + "...");
 
-        // Build a realistic worldgen-shaped tree (continentalness + erosion + Y gradient).
         DfcNode tree = buildBenchTree();
         CompiledSampler sampler = JitCompiler.compile(tree, JitOptions.DEFAULT);
 
@@ -104,7 +102,6 @@ public final class AtlasCommand {
             }
             long elapsedMs = (System.nanoTime() - t0) / 1_000_000;
 
-            // Each tile = 64 chunks (8x8).
             int chunks = tilesToGen * 64;
             double cps = chunks * 1000.0 / Math.max(1, elapsedMs);
 
@@ -115,7 +112,6 @@ public final class AtlasCommand {
             sendMessage(src, "§7  parallelism:   §f" + parallelism + " threads");
             sendMessage(src, "§7  (noise-only stage; full pipeline arrives in Phase 2)");
 
-            // Cleanup — tiles allocated by the pipeline must be closed.
             for (CompletableFuture<?> f : futs) {
                 try { ((Tile) f.get()).close(); } catch (Exception ignored) {}
             }
@@ -123,8 +119,8 @@ public final class AtlasCommand {
         return 1;
     }
 
-    private static int executeValidate(com.mojang.brigadier.context.CommandContext<ServerCommandSource> ctx) {
-        ServerCommandSource src = ctx.getSource();
+    private static int executeValidate(com.mojang.brigadier.context.CommandContext<CommandSourceStack> ctx) {
+        CommandSourceStack src = ctx.getSource();
         sendMessage(src, "§6§l[Atlas] §rrunning JIT vs Interpreter correctness check...");
 
         DfcNode tree = buildBenchTree();
@@ -179,7 +175,7 @@ public final class AtlasCommand {
         );
     }
 
-    private static void sendMessage(ServerCommandSource src, String message) {
-        src.sendFeedback(() -> Text.literal(message), false);
+    private static void sendMessage(CommandSourceStack src, String message) {
+        src.sendSuccess(() -> Component.literal(message), false);
     }
 }

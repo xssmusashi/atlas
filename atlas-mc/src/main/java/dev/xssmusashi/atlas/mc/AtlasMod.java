@@ -22,18 +22,12 @@ public final class AtlasMod implements ModInitializer {
     @Override
     public void onInitialize() {
         C2MEDetector.checkAndFailFast();
-        AtlasService service = AtlasService.get(); // touch to verify wiring
-
-        // /atlas command depends on MC's text/command classes whose intermediary
-        // names differ between MC versions. The mod is built against MC 1.21.4
-        // mappings; on other MC versions (e.g. 26.1.x with new intermediary numbers)
-        // command class loading throws NoClassDefFoundError. Catch and continue —
-        // the mod is still usable as a Fabric library / service.
+        AtlasService service = AtlasService.get();
         boolean commandsRegistered = tryRegisterCommands();
 
         LOG.info("Atlas initialised — service: {}, /atlas command: {}. ChunkGenerator: Phase 2.",
             service.getClass().getSimpleName(),
-            commandsRegistered ? "registered" : "DISABLED (MC version mismatch — see logs)");
+            commandsRegistered ? "registered" : "DISABLED (see warnings above)");
     }
 
     private static boolean tryRegisterCommands() {
@@ -41,10 +35,8 @@ public final class AtlasMod implements ModInitializer {
             AtlasCommand.register();
             return true;
         } catch (Throwable t) {
-            LOG.warn("[Atlas] /atlas command unavailable on this MC version: {} ({})",
+            LOG.warn("[Atlas] /atlas command unavailable: {} ({})",
                 t.getClass().getSimpleName(), t.getMessage());
-            LOG.warn("[Atlas] The mod was built for MC 1.21.4 yarn mappings. "
-                + "Engine + AtlasService API still work; rebuild against your MC's yarn for /atlas commands.");
             return false;
         }
     }

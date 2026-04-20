@@ -1,26 +1,23 @@
-// atlas-mc — Fabric mod that exposes Atlas worldgen to Minecraft.
-// Sub-plan 6 wires Loom + a stub AtlasChunkGenerator that registers but throws on use.
-// Sub-plan 7 fills in DfcBridge and the real generator implementation.
+// atlas-mc — Fabric mod for Minecraft 26.1+ (unobfuscated, Mojang names everywhere).
+// MC 26.1 uses the new net.fabricmc.fabric-loom plugin (no remapping needed).
 
 plugins {
-    id("fabric-loom") version "1.9-SNAPSHOT"
+    id("net.fabricmc.fabric-loom")
 }
 
 repositories {
     maven("https://maven.fabricmc.net/") { name = "Fabric" }
-    maven("https://maven.parchmentmc.org") { name = "ParchmentMC" }
 }
 
-val mcVersion       = "1.21.4"
-val yarnMappings    = "1.21.4+build.8"
-val loaderVersion   = "0.16.10"
-val fabricApiVersion = "0.119.2+1.21.4"
+val mcVersion        = "26.1.2"
+val loaderVersion    = "0.19.2"
+val fabricApiVersion = "0.146.1+26.1.2"
 
 dependencies {
     minecraft("com.mojang:minecraft:$mcVersion")
-    mappings("net.fabricmc:yarn:$yarnMappings:v2")
-    modImplementation("net.fabricmc:fabric-loader:$loaderVersion")
-    modImplementation("net.fabricmc.fabric-api:fabric-api:$fabricApiVersion")
+    // No mappings dependency — MC 26.1 is already unobfuscated.
+    implementation("net.fabricmc:fabric-loader:$loaderVersion")
+    implementation("net.fabricmc.fabric-api:fabric-api:$fabricApiVersion")
 
     implementation(project(":atlas-core"))
     include(project(":atlas-core"))
