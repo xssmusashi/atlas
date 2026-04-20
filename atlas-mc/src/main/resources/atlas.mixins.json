@@ -1,0 +1,11 @@
+{
+  "required": false,
+  "package": "dev.xssmusashi.atlas.mc.mixin",
+  "compatibilityLevel": "JAVA_22",
+  "mixins": [
+    "ServerTickMixin"
+  ],
+  "injectors": {
+    "defaultRequire": -1
+  }
+}

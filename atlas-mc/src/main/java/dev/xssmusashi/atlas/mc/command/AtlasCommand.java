@@ -70,14 +70,19 @@ public final class AtlasCommand {
         int cores = Runtime.getRuntime().availableProcessors();
         long maxHeap = Runtime.getRuntime().maxMemory() / (1024 * 1024);
         boolean vectorAvailable = isVectorApiAvailable();
+        boolean tickMixin = dev.xssmusashi.atlas.mc.AtlasMixinStats.serverTickMixinActive();
+        long ticks = dev.xssmusashi.atlas.mc.AtlasMixinStats.ticks();
 
         sendMessage(src, "§6§l[Atlas] §rstatus");
         sendMessage(src, "§7  version:       §f0.1.0-SNAPSHOT (Phase 1)");
         sendMessage(src, "§7  cores:         §f" + cores);
         sendMessage(src, "§7  max heap:      §f" + maxHeap + " MB");
-        sendMessage(src, "§7  Vector API:    §f" + (vectorAvailable ? "§aAVAILABLE" : "§cMISSING (add --add-modules=jdk.incubator.vector)"));
-        sendMessage(src, "§7  pipeline mode: §fengine + service API (Phase 2 wires ChunkGenerator)");
-        sendMessage(src, "§7Try: §e/atlas bench§7 or §e/atlas validate");
+        sendMessage(src, "§7  Vector API:    §f" + (vectorAvailable ? "§aAVAILABLE" : "§cMISSING"));
+        sendMessage(src, "§7  Mixin (tick):  §f" + (tickMixin
+            ? "§aATTACHED §7(" + ticks + " ticks observed)"
+            : "§cNOT ATTACHED — Phase 2 worldgen mixins won't work"));
+        sendMessage(src, "§7  pipeline mode: §fengine + service API");
+        sendMessage(src, "§7Try: §e/atlas bench§7 or §e/atlas pregen 32 persist");
         return 1;
     }
 
