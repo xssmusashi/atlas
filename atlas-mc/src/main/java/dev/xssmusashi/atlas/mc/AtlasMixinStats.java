@@ -13,16 +13,32 @@ public final class AtlasMixinStats {
     private static final AtomicLong TICKS = new AtomicLong();
     private static final AtomicLong CHUNK_GEN_SEEN = new AtomicLong();
     private static final AtomicLong NOISE_POPULATE_INTERCEPTS = new AtomicLong();
+    private static final AtomicLong DO_FILL_CALLS = new AtomicLong();
+    private static final AtomicLong DO_FILL_TOTAL_NANOS = new AtomicLong();
 
     public static void recordTick() { TICKS.incrementAndGet(); }
     public static void recordChunkGenSeen() { CHUNK_GEN_SEEN.incrementAndGet(); }
     public static void recordNoisePopulate() { NOISE_POPULATE_INTERCEPTS.incrementAndGet(); }
+    public static void recordDoFill(long nanos) {
+        DO_FILL_CALLS.incrementAndGet();
+        DO_FILL_TOTAL_NANOS.addAndGet(nanos);
+    }
 
     public static long ticks() { return TICKS.get(); }
     public static long chunkGenSeen() { return CHUNK_GEN_SEEN.get(); }
     public static long noisePopulateIntercepts() { return NOISE_POPULATE_INTERCEPTS.get(); }
+    public static long doFillCalls() { return DO_FILL_CALLS.get(); }
+    public static long doFillTotalNanos() { return DO_FILL_TOTAL_NANOS.get(); }
+
+    /** Average vanilla doFill cost in milliseconds (0 if no calls observed). */
+    public static double doFillAvgMs() {
+        long calls = DO_FILL_CALLS.get();
+        if (calls == 0) return 0.0;
+        return (DO_FILL_TOTAL_NANOS.get() / 1_000_000.0) / calls;
+    }
 
     public static boolean serverTickMixinActive() { return TICKS.get() > 0; }
     public static boolean chunkGenMixinActive() { return CHUNK_GEN_SEEN.get() > 0; }
     public static boolean noisePopulateMixinActive() { return NOISE_POPULATE_INTERCEPTS.get() > 0; }
+    public static boolean doFillTimingActive() { return DO_FILL_CALLS.get() > 0; }
 }

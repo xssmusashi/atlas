@@ -89,8 +89,20 @@ public final class AtlasCommand {
         sendMessage(src, "§7  Vector API:    §f" + (vectorAvailable ? "§aAVAILABLE" : "§cMISSING"));
         sendMessage(src, "§7  Mixins:");
         sendMessage(src, "§7    server-tick:   §f" + (tickMixin ? "§a✓ " + ticks + " ticks" : "§c✗"));
-        sendMessage(src, "§7    chunkgen-init: §f" + (chunkGenMixin ? "§a✓ " + chunkGens + " gens seen" : "§c✗ (move/load a chunk first)"));
-        sendMessage(src, "§7    noise-populate:§f" + (noisePopulateMixin ? "§a✓ " + noisePops + " calls intercepted" : "§c✗ (signature mismatch in 26.1?)"));
+        sendMessage(src, "§7    chunkgen-init: §f" + (chunkGenMixin ? "§a✓ " + chunkGens + " gens seen" : "§c✗"));
+        sendMessage(src, "§7    noise-populate:§f" + (noisePopulateMixin ? "§a✓ " + noisePops + " calls" : "§c✗"));
+
+        // Vanilla-vs-Atlas timing comparison (live data from this MC session).
+        long doFillCalls = dev.xssmusashi.atlas.mc.AtlasMixinStats.doFillCalls();
+        double vanillaMsPerChunk = dev.xssmusashi.atlas.mc.AtlasMixinStats.doFillAvgMs();
+        if (doFillCalls > 0) {
+            double vanillaCps = 1000.0 / vanillaMsPerChunk;
+            sendMessage(src, "§7  §6Vanilla noise (live):§f " + String.format("%.1f ms/chunk", vanillaMsPerChunk)
+                + " §7(" + doFillCalls + " samples) ≈ §f" + String.format("%.0f cps", vanillaCps) + " §7single-thread");
+            sendMessage(src, "§7  §6Atlas potential:§f run §e/atlas bench§f to compare on identical workload");
+        } else {
+            sendMessage(src, "§7  vanilla timing: §c(no doFill calls yet — explore the world to load chunks)");
+        }
         sendMessage(src, "§7Try: §e/atlas bench§7 or §e/atlas pregen 32 persist 4");
         return 1;
     }

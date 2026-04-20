@@ -4,7 +4,8 @@
   "compatibilityLevel": "JAVA_22",
   "mixins": [
     "ServerTickMixin",
-    "NoiseChunkGenObserveMixin"
+    "NoiseChunkGenObserveMixin",
+    "NoiseChunkGenTimingMixin"
   ],
   "injectors": {
     "defaultRequire": -1
