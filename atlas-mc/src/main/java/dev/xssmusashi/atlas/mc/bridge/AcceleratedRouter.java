@@ -29,10 +29,17 @@ public final class AcceleratedRouter {
 
     /** Toggle for substitute mode. Default OFF — only verify when explicitly enabled. */
     private static volatile boolean substituteEnabled = false;
+    /** Toggle for parallel chunk-task dispatch (bypass MC's consecutive executor). */
+    private static volatile boolean threadingEnabled = false;
 
     private static final AtomicLong SUBSTITUTED_CALLS = new AtomicLong();
     private static final AtomicLong FALLBACK_CALLS = new AtomicLong();
     private static final AtomicLong VERIFY_MISMATCHES = new AtomicLong();
+    private static final AtomicLong PARALLEL_DISPATCHES = new AtomicLong();
+    public static boolean isThreadingEnabled() { return threadingEnabled; }
+    public static void setThreadingEnabled(boolean on) { threadingEnabled = on; }
+    public static long parallelDispatches() { return PARALLEL_DISPATCHES.get(); }
+    public static void recordParallelDispatch() { PARALLEL_DISPATCHES.incrementAndGet(); }
 
     public static void setSubstituteEnabled(boolean on) { substituteEnabled = on; }
     public static boolean isSubstituteEnabled() { return substituteEnabled; }

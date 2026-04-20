@@ -92,7 +92,10 @@ public final class AtlasCommand {
                 .then(Commands.literal("accelerate")
                     .then(Commands.literal("on").executes(ctx -> setAccelerate(ctx, true)))
                     .then(Commands.literal("off").executes(ctx -> setAccelerate(ctx, false)))
-                    .then(Commands.literal("status").executes(AtlasCommand::accelerateStatus)))
+                    .then(Commands.literal("status").executes(AtlasCommand::accelerateStatus))
+                    .then(Commands.literal("threading")
+                        .then(Commands.literal("on").executes(ctx -> setThreading(ctx, true)))
+                        .then(Commands.literal("off").executes(ctx -> setThreading(ctx, false)))))
                 .then(Commands.literal("profile").executes(AtlasCommand::executeProfile))
         );
     }
@@ -574,6 +577,17 @@ public final class AtlasCommand {
                 scheduleBatchedForceLoad(server, level, positions, state, end);
             }
         });
+    }
+
+    private static int setThreading(com.mojang.brigadier.context.CommandContext<CommandSourceStack> ctx, boolean on) {
+        CommandSourceStack src = ctx.getSource();
+        dev.xssmusashi.atlas.mc.bridge.AcceleratedRouter.setThreadingEnabled(on);
+        sendMessage(src, "§6[Atlas] §rparallel chunk dispatch: " + (on ? "§aON" : "§7OFF"));
+        if (on) {
+            sendMessage(src, "§e  WARNING: bypasses MC's consecutive executor — should accelerate live worldgen.");
+            sendMessage(src, "§e  If chunks corrupt or game crashes, run /atlas accelerate threading off");
+        }
+        return 1;
     }
 
     private static int setAccelerate(com.mojang.brigadier.context.CommandContext<CommandSourceStack> ctx, boolean on) {
