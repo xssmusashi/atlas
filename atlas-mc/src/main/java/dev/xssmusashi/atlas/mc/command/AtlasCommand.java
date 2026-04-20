@@ -16,8 +16,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -171,8 +172,9 @@ public final class AtlasCommand {
         DfcNode tree = buildBenchTree();
         CompiledSampler sampler = JitCompiler.compile(tree, JitOptions.DEFAULT);
 
-        // Pre-open region files for persistence to avoid open/close per tile.
-        Map<RegionCoord, RegionFile> openRegions = new HashMap<>();
+        // Pre-open region files for persistence (concurrent map — multiple worker
+        // threads complete tiles in parallel and may need region-file handles).
+        Map<RegionCoord, RegionFile> openRegions = new ConcurrentHashMap<>();
         try {
             if (persist) {
                 Files.createDirectories(ATLAS_DATA_DIR);
@@ -182,18 +184,40 @@ public final class AtlasCommand {
             return 0;
         }
 
+        AtomicLong peakHeapTracker = new AtomicLong();
         long t0 = System.nanoTime();
         long peakHeapBytes;
         long bytesWritten = 0;
         try (DagScheduler sched = new DagScheduler(parallelism, parallelism * 4);
              TilePipeline pipeline = new TilePipeline(0xC0FFEEL, sampler, sched)) {
 
+            // STREAM each tile: as soon as a tile completes on a worker thread,
+            // serialize → write → close → evict. This caps in-flight memory at
+            // (parallelism × tile-size) ≈ 750 MB instead of 31 GB for radius=100.
             CompletableFuture<?>[] futs = new CompletableFuture[tiles];
             int submitted = 0;
             for (int dz = 0; dz < sideTiles; dz++) {
                 for (int dx = 0; dx < sideTiles; dx++) {
-                    futs[submitted++] = pipeline.generate(
-                        new TileCoord(originTileX + dx, originTileZ + dz));
+                    final TileCoord tc = new TileCoord(originTileX + dx, originTileZ + dz);
+                    futs[submitted++] = pipeline.generate(tc).thenAccept(tile -> {
+                        try {
+                            if (persist) {
+                                RegionCoord rc = RegionCoord.fromTile(tile.coord);
+                                RegionFile rf = openRegions.computeIfAbsent(rc, key -> {
+                                    try { return RegionFile.open(ATLAS_DATA_DIR, key); }
+                                    catch (IOException e) { throw new RuntimeException(e); }
+                                });
+                                rf.writeTile(tile); // RegionFile.writeTile is synchronized
+                            }
+                        } catch (Exception e) {
+                            AtlasModLog.warn("Failed to persist tile " + tile.coord + ": " + e);
+                        } finally {
+                            tile.close();              // free off-heap arena IMMEDIATELY
+                            pipeline.evict(tile.coord); // remove from in-flight cache
+                            long heap = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+                            peakHeapTracker.accumulateAndGet(heap, Math::max);
+                        }
+                    });
                 }
             }
             try {
@@ -205,24 +229,6 @@ public final class AtlasCommand {
             } catch (ExecutionException ee) {
                 sendMessage(src, "§c[Atlas] failed: " + ee.getCause().getMessage());
                 return 0;
-            }
-            peakHeapBytes = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-
-            for (CompletableFuture<?> f : futs) {
-                try {
-                    Tile tile = (Tile) f.get();
-                    if (persist) {
-                        RegionCoord rc = RegionCoord.fromTile(tile.coord);
-                        RegionFile rf = openRegions.computeIfAbsent(rc, key -> {
-                            try { return RegionFile.open(ATLAS_DATA_DIR, key); }
-                            catch (IOException e) { throw new RuntimeException(e); }
-                        });
-                        rf.writeTile(tile);
-                    }
-                    tile.close();
-                } catch (Exception e) {
-                    AtlasModLog.warn("Failed to persist tile: " + e);
-                }
             }
 
             if (persist) {
@@ -236,6 +242,7 @@ public final class AtlasCommand {
                 } catch (IOException ignored) {}
             }
         }
+        peakHeapBytes = peakHeapTracker.get();
         long elapsedMs = (System.nanoTime() - t0) / 1_000_000;
         double cps = actualChunks * 1000.0 / Math.max(1, elapsedMs);
         double tilesPerSec = tiles * 1000.0 / Math.max(1, elapsedMs);
