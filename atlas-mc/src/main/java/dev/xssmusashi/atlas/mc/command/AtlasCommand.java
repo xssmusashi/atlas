@@ -25,7 +25,10 @@ import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import java.util.concurrent.CompletableFuture;
@@ -390,10 +393,12 @@ public final class AtlasCommand {
     }
 
     /**
-     * Pre-generates real vanilla chunks (with Terralith / datapacks fully working).
-     * Atlas posts chunk-load requests to the server's task queue; MC handles
-     * generation through its normal pipeline. Result: real .mca files on disk
-     * that Voxy + the game both see correctly.
+     * Pre-generates real vanilla chunks via MC's ticket system. Atlas adds an
+     * UNKNOWN ticket for each chunk in the area; MC's chunk loader then dispatches
+     * generation to its own worker pool (parallel by design). Atlas polls in a
+     * daemon thread to detect completion, reports progress, and removes tickets
+     * when done. No mixin into worldgen — MC's pipeline runs normally so Terralith
+     * + datapacks produce identical terrain to walking there.
      */
     private static int executePregenVanilla(com.mojang.brigadier.context.CommandContext<CommandSourceStack> ctx) {
         CommandSourceStack src = ctx.getSource();
@@ -419,73 +424,89 @@ public final class AtlasCommand {
 
         int side = radius * 2;
         int total = side * side;
-        sendMessage(src, "§6§l[Atlas] §rvanilla pregen via MC chunkgen: " + total
-            + " chunks (radius " + radius + ", " + side + "×" + side + ") around chunk ("
-            + playerChunkX + "," + playerChunkZ + ")...");
-        sendMessage(src, "§7  uses your loaded worldgen (Terralith / datapacks) — chunks land in real .mca, Voxy will see them.");
 
-        long t0 = System.nanoTime();
-        AtomicInteger done = new AtomicInteger();
-        AtomicInteger errors = new AtomicInteger();
-        AtomicLong nextReportNs = new AtomicLong(t0 + 3_000_000_000L);
-
-        CompletableFuture<?>[] futs = new CompletableFuture[total];
-        int idx = 0;
+        // Build full chunk position list once (used both for queueing and polling).
+        final List<ChunkPos> positions = new ArrayList<>(total);
         for (int dz = -radius; dz < radius; dz++) {
             for (int dx = -radius; dx < radius; dx++) {
-                final int cx = playerChunkX + dx;
-                final int cz = playerChunkZ + dz;
+                positions.add(new ChunkPos(playerChunkX + dx, playerChunkZ + dz));
+            }
+        }
 
-                CompletableFuture<?> fut;
-                try {
-                    fut = server.submit(() -> {
-                        try {
-                            level.getChunk(cx, cz, ChunkStatus.FULL, true);
-                        } catch (Throwable t) {
-                            errors.incrementAndGet();
-                        }
-                        return null;
-                    });
-                } catch (Throwable submitErr) {
-                    errors.incrementAndGet();
-                    fut = CompletableFuture.completedFuture(null);
+        sendMessage(src, "§6§l[Atlas] §rvanilla pregen (ticket-based parallel): " + total
+            + " chunks (radius " + radius + ", " + side + "×" + side + ") around chunk ("
+            + playerChunkX + "," + playerChunkZ + ")...");
+        sendMessage(src, "§7  uses MC's own worker pool — Terralith + datapacks unchanged. Voxy will see real .mca.");
+
+        final long t0 = System.nanoTime();
+        final AtomicInteger reportedLoaded = new AtomicInteger();
+
+        // Phase 1: force-load each chunk on server thread via the public
+        // setChunkForced API (same one /forceload uses). MC's chunk loader picks
+        // them up and distributes generation across its worker pool in parallel.
+        server.execute(() -> {
+            try {
+                for (ChunkPos pos : positions) {
+                    level.setChunkForced(pos.x(), pos.z(), true);
                 }
+            } catch (Throwable t) {
+                sendMessage(src, "§c[Atlas] failed to enqueue chunks: " + t.getMessage());
+            }
+        });
 
-                futs[idx++] = fut.whenComplete((v, ex) -> {
-                    int n = done.incrementAndGet();
+        // Phase 2: poll for completion in a daemon thread. Each chunk is "done"
+        // when level.hasChunk(x, z) returns true (chunk is loaded at FULL status).
+        Thread poller = new Thread(() -> {
+            try {
+                while (true) {
+                    Thread.sleep(1000);
+                    int loaded = 0;
+                    for (ChunkPos pos : positions) {
+                        if (level.hasChunk(pos.x(), pos.z())) loaded++;
+                    }
                     long now = System.nanoTime();
-                    long nextDue = nextReportNs.get();
-                    if (now >= nextDue && nextReportNs.compareAndSet(nextDue, now + 3_000_000_000L)) {
-                        long elapsedMs = (now - t0) / 1_000_000;
-                        double cps = n * 1000.0 / Math.max(1, elapsedMs);
-                        final int snap = n;
+                    long elapsedMs = (now - t0) / 1_000_000;
+
+                    if (loaded != reportedLoaded.get()) {
+                        reportedLoaded.set(loaded);
+                        double cps = loaded * 1000.0 / Math.max(1, elapsedMs);
+                        final int snap = loaded;
                         final double snapCps = cps;
                         server.execute(() -> sendMessage(src,
                             "§7  …" + snap + "/" + total + " chunks (§a"
                                 + String.format("%.1f cps", snapCps) + "§7)"));
                     }
-                });
-            }
-        }
 
-        CompletableFuture.allOf(futs).whenComplete((v, err) -> {
-            long elapsedMs = (System.nanoTime() - t0) / 1_000_000;
-            int doneCount = done.get();
-            int errorCount = errors.get();
-            double cps = doneCount * 1000.0 / Math.max(1, elapsedMs);
-            server.execute(() -> {
-                sendMessage(src, "§6§l[Atlas] §rvanilla pregen complete:");
-                sendMessage(src, "§7  generated:  §a" + doneCount + " chunks");
-                if (errorCount > 0) {
-                    sendMessage(src, "§7  errors:     §c" + errorCount);
+                    if (loaded >= total) {
+                        // Cleanup tickets and report final.
+                        final double finalCps = loaded * 1000.0 / Math.max(1, elapsedMs);
+                        final int finalLoaded = loaded;
+                        final long finalElapsed = elapsedMs;
+                        server.execute(() -> {
+                            try {
+                                for (ChunkPos pos : positions) {
+                                    level.setChunkForced(pos.x(), pos.z(), false);
+                                }
+                            } catch (Throwable ignored) {}
+                            sendMessage(src, "§6§l[Atlas] §rvanilla pregen complete:");
+                            sendMessage(src, "§7  generated:  §a" + finalLoaded + " chunks");
+                            sendMessage(src, "§7  elapsed:    §f" + finalElapsed + " ms");
+                            sendMessage(src, "§7  throughput: §a" + String.format("%.1f cps", finalCps));
+                            sendMessage(src, "§7  (real .mca chunks; Voxy and game both see them)");
+                        });
+                        return;
+                    }
                 }
-                sendMessage(src, "§7  elapsed:    §f" + elapsedMs + " ms");
-                sendMessage(src, "§7  throughput: §a" + String.format("%.1f cps", cps));
-                sendMessage(src, "§7  (real .mca chunks; Voxy and game both see them)");
-            });
-        });
+            } catch (InterruptedException ignored) {
+                Thread.currentThread().interrupt();
+            } catch (Throwable t) {
+                server.execute(() -> sendMessage(src, "§c[Atlas] poller failed: " + t.getMessage()));
+            }
+        }, "atlas-vanilla-pregen-poller");
+        poller.setDaemon(true);
+        poller.start();
 
-        sendMessage(src, "§7  queued " + total + " chunks; progress every 3s, completion in chat.");
+        sendMessage(src, "§7  tickets queued; MC's chunk loader is generating in parallel. Progress every second.");
         return 1;
     }
 
