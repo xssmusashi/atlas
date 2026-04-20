@@ -15,6 +15,9 @@ public final class AtlasMixinStats {
     private static final AtomicLong NOISE_POPULATE_INTERCEPTS = new AtomicLong();
     private static final AtomicLong DO_FILL_CALLS = new AtomicLong();
     private static final AtomicLong DO_FILL_TOTAL_NANOS = new AtomicLong();
+    private static final AtomicLong CHUNK_SOURCE_OBSERVED = new AtomicLong();
+    public static void recordChunkSourceObserved() { CHUNK_SOURCE_OBSERVED.incrementAndGet(); }
+    public static long chunkSourceObserved() { return CHUNK_SOURCE_OBSERVED.get(); }
 
     public static void recordTick() { TICKS.incrementAndGet(); }
     public static void recordChunkGenSeen() { CHUNK_GEN_SEEN.incrementAndGet(); }
