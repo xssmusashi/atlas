@@ -12,6 +12,7 @@ allprojects {
 }
 
 val javaToolchainVersion = (property("java.toolchain.version") as String).toInt()
+val javaReleaseTarget = (property("java.release.target") as String).toInt()
 
 subprojects {
     apply(plugin = "java")
@@ -25,7 +26,7 @@ subprojects {
 
     tasks.withType<JavaCompile>().configureEach {
         options.encoding = "UTF-8"
-        options.release.set(javaToolchainVersion)
+        options.release.set(javaReleaseTarget)
     }
 
     tasks.withType<Test>().configureEach {

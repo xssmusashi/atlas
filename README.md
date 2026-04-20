@@ -26,10 +26,41 @@ See `docs/superpowers/specs/2026-04-20-atlas-phase1-acceptance.md` for the full 
 - `atlas-mc` — Fabric mod, MC integration glue.
 - `atlas-bench` — JMH benchmarks.
 
-## Build
+## Install
+
+Download `atlas-mc-X.Y.Z.jar` from [Releases](https://github.com/xssmusashi/atlas/releases) (or build it: `./gradlew :atlas-mc:remapJar`, output in `atlas-mc/build/libs/`).
+
+Drop the jar into your Minecraft `mods/` folder.
+
+**Required:**
+- Minecraft **1.21.4** (Fabric)
+- Fabric Loader **0.16.0+**
+- Java **21+** (recommended **JDK 25** for Vector API JIT path; works on JDK 22+)
+- Fabric API **0.119.2+1.21.4** or compatible
+
+**Recommended JVM args** (for Vector API SIMD):
+```
+--add-modules=jdk.incubator.vector
+```
+
+**MUST NOT coexist with:** `c2me` / `c2me-base` / `c2me-fabric` (Atlas refuses to start with a clear error).
+
+## What Atlas does (and doesn't) in the current release
+
+| Feature | Status |
+|---|---|
+| C2ME conflict detection | ✅ Active at startup |
+| `AtlasService` public API for other mods (Farsight etc.) | ✅ Available |
+| JIT compiler + tile pipeline + region storage | ✅ Available via API |
+| Replacing vanilla worldgen for actual chunk generation | ⏳ **Phase 2** (requires `AtlasChunkGenerator` registration) |
+
+The current release ships the full **engine** as a Fabric library plus the public service. Other mods (e.g. Farsight) can use it now. Direct in-game worldgen replacement lands in Phase 2 — see `docs/superpowers/specs/2026-04-20-atlas-phase1-acceptance.md` for details.
+
+## Build from source
 
 ```bash
-./gradlew build
+./gradlew :atlas-mc:remapJar
+# → atlas-mc/build/libs/atlas-mc-X.Y.Z.jar
 ```
 
 ## Bench
