@@ -32,15 +32,19 @@ public final class AcceleratedRouter {
 
     private static final AtomicLong SUBSTITUTED_CALLS = new AtomicLong();
     private static final AtomicLong FALLBACK_CALLS = new AtomicLong();
+    private static final AtomicLong VERIFY_MISMATCHES = new AtomicLong();
 
     public static void setSubstituteEnabled(boolean on) { substituteEnabled = on; }
     public static boolean isSubstituteEnabled() { return substituteEnabled; }
     public static long substitutedCalls() { return SUBSTITUTED_CALLS.get(); }
     public static long fallbackCalls() { return FALLBACK_CALLS.get(); }
+    public static long verifyMismatches() { return VERIFY_MISMATCHES.get(); }
+    public static void recordVerifyMismatch() { VERIFY_MISMATCHES.incrementAndGet(); }
 
     public static void reset() {
         SUBSTITUTED_CALLS.set(0);
         FALLBACK_CALLS.set(0);
+        VERIFY_MISMATCHES.set(0);
         CACHE.clear();
     }
 
@@ -48,7 +52,7 @@ public final class AcceleratedRouter {
      * Lookup or build the JIT entry for a given generator and its final-density tree.
      * Returns null if conversion failed (caller falls back to vanilla).
      */
-    public static Entry getOrBuild(Object generator, Object finalDensityTree) {
+    public static Entry getOrBuild(Object generator, Object finalDensityTree, long seed) {
         Entry existing = CACHE.get(generator);
         if (existing != null) return existing;
 
@@ -58,7 +62,7 @@ public final class AcceleratedRouter {
             return Entry.UNCONVERTIBLE;
         }
         CompiledSampler sampler = JitCompiler.compile(tree.get(), JitOptions.DEFAULT);
-        Entry e = new Entry(tree.get(), sampler, false);
+        Entry e = new Entry(tree.get(), sampler, false, seed);
         CACHE.put(generator, e);
         return e;
     }
@@ -103,16 +107,19 @@ public final class AcceleratedRouter {
 
     /** Single per-generator JIT entry. */
     public static final class Entry {
-        public static final Entry UNCONVERTIBLE = new Entry(null, null, true);
+        public static final Entry UNCONVERTIBLE = new Entry(null, null, true, 0L);
 
         public final DfcNode tree;
         public final CompiledSampler sampler;
+        public final long seed;
         private volatile boolean verifyFailed;
+        private final AtomicLong verifyCounter = new AtomicLong();
 
-        Entry(DfcNode tree, CompiledSampler sampler, boolean verifyFailed) {
+        Entry(DfcNode tree, CompiledSampler sampler, boolean verifyFailed, long seed) {
             this.tree = tree;
             this.sampler = sampler;
             this.verifyFailed = verifyFailed;
+            this.seed = seed;
         }
 
         public boolean isUsable() {
@@ -121,6 +128,11 @@ public final class AcceleratedRouter {
 
         public void markVerifyFailed() {
             this.verifyFailed = true;
+        }
+
+        /** Returns true on every 1024th call — verify gate to detect drift. */
+        public boolean shouldVerifyNext() {
+            return (verifyCounter.incrementAndGet() & 1023) == 0;
         }
     }
 

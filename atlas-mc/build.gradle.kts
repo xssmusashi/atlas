@@ -32,6 +32,12 @@ dependencies {
     // bundle ours to guarantee the version we tested with.
     implementation("com.google.code.gson:gson:2.11.0")
     include("com.google.code.gson:gson:2.11.0")
+
+    // Mixin Extras — @ModifyReturnValue for safe substitute of vanilla return
+    // values. Fabric Loader 0.19+ ships mixinextras 0.5.x transitively, but we
+    // declare explicit compile dep for type access.
+    implementation("io.github.llamalad7:mixinextras-fabric:0.5.0-rc.1")
+    include("io.github.llamalad7:mixinextras-fabric:0.5.0-rc.1")
 }
 
 loom {

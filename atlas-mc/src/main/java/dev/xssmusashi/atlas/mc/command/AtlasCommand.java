@@ -91,6 +91,7 @@ public final class AtlasCommand {
                     .then(Commands.literal("on").executes(ctx -> setAccelerate(ctx, true)))
                     .then(Commands.literal("off").executes(ctx -> setAccelerate(ctx, false)))
                     .then(Commands.literal("status").executes(AtlasCommand::accelerateStatus)))
+                .then(Commands.literal("profile").executes(AtlasCommand::executeProfile))
         );
     }
 
@@ -116,6 +117,15 @@ public final class AtlasCommand {
         sendMessage(src, "§7    server-tick:   §f" + (tickMixin ? "§a✓ " + ticks + " ticks" : "§c✗"));
         sendMessage(src, "§7    chunkgen-init: §f" + (chunkGenMixin ? "§a✓ " + chunkGens + " gens seen" : "§c✗"));
         sendMessage(src, "§7    noise-populate:§f" + (noisePopulateMixin ? "§a✓ " + noisePops + " calls" : "§c✗"));
+
+        // Substitute mixin status
+        boolean accelOn = dev.xssmusashi.atlas.mc.bridge.AcceleratedRouter.isSubstituteEnabled();
+        long subs = dev.xssmusashi.atlas.mc.bridge.AcceleratedRouter.substitutedCalls();
+        long fb = dev.xssmusashi.atlas.mc.bridge.AcceleratedRouter.fallbackCalls();
+        long mismatches = dev.xssmusashi.atlas.mc.bridge.AcceleratedRouter.verifyMismatches();
+        int convEntries = dev.xssmusashi.atlas.mc.bridge.AcceleratedRouter.convertibleEntries();
+        sendMessage(src, "§7    substitute:    §f" + (accelOn ? "§aON" : "§7off")
+            + " §7(" + convEntries + " gens convertible, " + subs + " calls subs / " + fb + " fb / " + mismatches + " mismatch)");
 
         // Vanilla-vs-Atlas timing comparison (live data from this MC session).
         long doFillCalls = dev.xssmusashi.atlas.mc.AtlasMixinStats.doFillCalls();
@@ -591,6 +601,34 @@ public final class AtlasCommand {
                 sendMessage(src, "§7    " + t.substring(Math.max(0, t.lastIndexOf('.') + 1)));
                 if (++count >= 5) break;
             }
+        }
+        return 1;
+    }
+
+    private static int executeProfile(com.mojang.brigadier.context.CommandContext<CommandSourceStack> ctx) {
+        CommandSourceStack src = ctx.getSource();
+        Runtime rt = Runtime.getRuntime();
+        long maxMb = rt.maxMemory() / (1024 * 1024);
+        long usedMb = (rt.totalMemory() - rt.freeMemory()) / (1024 * 1024);
+        long allocMb = rt.totalMemory() / (1024 * 1024);
+        int cores = rt.availableProcessors();
+        double heapPct = 100.0 * usedMb / maxMb;
+        var thread = java.lang.management.ManagementFactory.getThreadMXBean();
+        int threadCount = thread.getThreadCount();
+
+        sendMessage(src, "§6§l[Atlas] §rprofile (now):");
+        sendMessage(src, "§7  cores:        §f" + cores);
+        sendMessage(src, "§7  heap:         §f" + usedMb + " / " + allocMb + " / " + maxMb + " MB"
+            + " (§a" + String.format("%.0f%%", heapPct) + "§7 used)");
+        sendMessage(src, "§7  JVM threads:  §f" + threadCount);
+
+        // Recommendation
+        if (heapPct > 80) {
+            sendMessage(src, "§c  recommend:   §rlower /atlas pregen threads or wait — heap pressure high");
+        } else if (heapPct < 40 && allocMb < maxMb / 2) {
+            sendMessage(src, "§a  recommend:   §rcan use more threads (e.g. /atlas pregen 32 " + (cores - 1) + ")");
+        } else {
+            sendMessage(src, "§7  recommend:   §rcurrent settings are balanced");
         }
         return 1;
     }
