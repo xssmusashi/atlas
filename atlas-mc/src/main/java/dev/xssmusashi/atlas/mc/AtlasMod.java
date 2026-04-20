@@ -1,6 +1,7 @@
 package dev.xssmusashi.atlas.mc;
 
 import dev.xssmusashi.atlas.mc.api.AtlasService;
+import dev.xssmusashi.atlas.mc.command.AtlasCommand;
 import dev.xssmusashi.atlas.mc.compat.C2MEDetector;
 import net.fabricmc.api.ModInitializer;
 import org.slf4j.Logger;
@@ -22,7 +23,8 @@ public final class AtlasMod implements ModInitializer {
     public void onInitialize() {
         C2MEDetector.checkAndFailFast();
         AtlasService service = AtlasService.get(); // touch to verify wiring
-        LOG.info("Atlas initialised — service ready: {}. ChunkGenerator integration: Phase 2.",
-            service.getClass().getSimpleName());
+        AtlasCommand.register();
+        LOG.info("Atlas initialised — service ready: {}, /atlas command registered. "
+            + "ChunkGenerator integration: Phase 2.", service.getClass().getSimpleName());
     }
 }

@@ -52,7 +52,18 @@ Drop the jar into your Minecraft `mods/` folder.
 | C2ME conflict detection | ✅ Active at startup |
 | `AtlasService` public API for other mods (Farsight etc.) | ✅ Available |
 | JIT compiler + tile pipeline + region storage | ✅ Available via API |
+| **`/atlas` command** (info, bench, validate) — see your engine work in-game | ✅ Available |
 | Replacing vanilla worldgen for actual chunk generation | ⏳ **Phase 2** (requires `AtlasChunkGenerator` registration) |
+
+## In-game commands
+
+Open chat in any singleplayer/server world and try:
+
+- **`/atlas info`** — version, cores, max heap, Vector API status
+- **`/atlas bench`** — generate 8 tiles (= 512 chunks) on a realistic 14-octave Perlin tree, report cps in chat
+- **`/atlas validate`** — run 1000-sample bit-exact JIT vs Interpreter check
+
+Requires permission level 2 (operator). On singleplayer you have it by default.
 
 The current release ships the full **engine** as a Fabric library plus the public service. Other mods (e.g. Farsight) can use it now. Direct in-game worldgen replacement lands in Phase 2 — see `docs/superpowers/specs/2026-04-20-atlas-phase1-acceptance.md` for details.
 
