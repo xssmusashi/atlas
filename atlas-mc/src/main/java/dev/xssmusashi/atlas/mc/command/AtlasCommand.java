@@ -29,7 +29,9 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -56,6 +58,14 @@ public final class AtlasCommand {
 
     private static final Path ATLAS_DATA_DIR = Paths.get("atlas-tiles");
 
+    /** Per-tick budget for force-load ticket additions (avoids server-thread freeze). */
+    private static final int FORCE_LOAD_BATCH_SIZE = 64;
+
+    /** State of the currently-running vanilla pregen, if any. */
+    private static final AtomicReference<VanillaPregenState> activePregen = new AtomicReference<>();
+
+    private record VanillaPregenState(AtomicBoolean cancelled, int totalChunks) {}
+
     private static void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(
             Commands.literal("atlas")
@@ -76,6 +86,7 @@ public final class AtlasCommand {
                 .then(Commands.literal("pregen-vanilla")
                     .then(Commands.argument("radius", IntegerArgumentType.integer(1, 256))
                         .executes(AtlasCommand::executePregenVanilla)))
+                .then(Commands.literal("cancel").executes(AtlasCommand::executeCancel))
         );
     }
 
@@ -441,25 +452,35 @@ public final class AtlasCommand {
         final long t0 = System.nanoTime();
         final AtomicInteger reportedLoaded = new AtomicInteger();
 
-        // Phase 1: force-load each chunk on server thread via the public
-        // setChunkForced API (same one /forceload uses). MC's chunk loader picks
-        // them up and distributes generation across its worker pool in parallel.
-        server.execute(() -> {
-            try {
-                for (ChunkPos pos : positions) {
-                    level.setChunkForced(pos.x(), pos.z(), true);
-                }
-            } catch (Throwable t) {
-                sendMessage(src, "§c[Atlas] failed to enqueue chunks: " + t.getMessage());
-            }
-        });
+        // Set up cancellation state so /atlas cancel can stop us mid-flight.
+        VanillaPregenState state = new VanillaPregenState(new AtomicBoolean(false), total);
+        VanillaPregenState prev = activePregen.getAndSet(state);
+        if (prev != null) prev.cancelled().set(true);
 
-        // Phase 2: poll for completion in a daemon thread. Each chunk is "done"
-        // when level.hasChunk(x, z) returns true (chunk is loaded at FULL status).
+        // Phase 1: force-load chunks BATCHED across server ticks. Adding 16k
+        // tickets in one server.execute freezes the tick loop; instead we
+        // schedule batches of FORCE_LOAD_BATCH_SIZE per tick via repeating
+        // server.execute. Server stays responsive throughout queueing.
+        scheduleBatchedForceLoad(server, level, positions, state, 0);
+
+        // Phase 2: poll for completion in a daemon thread.
         Thread poller = new Thread(() -> {
             try {
                 while (true) {
-                    Thread.sleep(1000);
+                    Thread.sleep(2000);
+                    if (state.cancelled().get()) {
+                        // Cleanup whatever we managed to force-load.
+                        server.execute(() -> {
+                            try {
+                                for (ChunkPos pos : positions) {
+                                    level.setChunkForced(pos.x(), pos.z(), false);
+                                }
+                            } catch (Throwable ignored) {}
+                            sendMessage(src, "§e[Atlas] vanilla pregen cancelled.");
+                            activePregen.compareAndSet(state, null);
+                        });
+                        return;
+                    }
                     int loaded = 0;
                     for (ChunkPos pos : positions) {
                         if (level.hasChunk(pos.x(), pos.z())) loaded++;
@@ -478,7 +499,6 @@ public final class AtlasCommand {
                     }
 
                     if (loaded >= total) {
-                        // Cleanup tickets and report final.
                         final double finalCps = loaded * 1000.0 / Math.max(1, elapsedMs);
                         final int finalLoaded = loaded;
                         final long finalElapsed = elapsedMs;
@@ -493,6 +513,7 @@ public final class AtlasCommand {
                             sendMessage(src, "§7  elapsed:    §f" + finalElapsed + " ms");
                             sendMessage(src, "§7  throughput: §a" + String.format("%.1f cps", finalCps));
                             sendMessage(src, "§7  (real .mca chunks; Voxy and game both see them)");
+                            activePregen.compareAndSet(state, null);
                         });
                         return;
                     }
@@ -506,7 +527,40 @@ public final class AtlasCommand {
         poller.setDaemon(true);
         poller.start();
 
-        sendMessage(src, "§7  tickets queued; MC's chunk loader is generating in parallel. Progress every second.");
+        sendMessage(src, "§7  queueing in batches of " + FORCE_LOAD_BATCH_SIZE
+            + "/tick to keep server responsive. /atlas cancel to abort.");
+        return 1;
+    }
+
+    /** Recursively schedule batched force-load on the server thread, one batch per tick. */
+    private static void scheduleBatchedForceLoad(MinecraftServer server, ServerLevel level,
+                                                  List<ChunkPos> positions,
+                                                  VanillaPregenState state, int startIdx) {
+        if (state.cancelled().get()) return;
+        server.execute(() -> {
+            if (state.cancelled().get()) return;
+            int end = Math.min(startIdx + FORCE_LOAD_BATCH_SIZE, positions.size());
+            try {
+                for (int i = startIdx; i < end; i++) {
+                    ChunkPos pos = positions.get(i);
+                    level.setChunkForced(pos.x(), pos.z(), true);
+                }
+            } catch (Throwable ignored) {}
+            if (end < positions.size()) {
+                scheduleBatchedForceLoad(server, level, positions, state, end);
+            }
+        });
+    }
+
+    private static int executeCancel(com.mojang.brigadier.context.CommandContext<CommandSourceStack> ctx) {
+        CommandSourceStack src = ctx.getSource();
+        VanillaPregenState s = activePregen.get();
+        if (s == null) {
+            sendMessage(src, "§e[Atlas] no active pregen to cancel.");
+            return 0;
+        }
+        s.cancelled().set(true);
+        sendMessage(src, "§e[Atlas] cancellation requested — cleanup on next poll cycle (~2s).");
         return 1;
     }
 
