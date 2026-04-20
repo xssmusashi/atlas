@@ -74,19 +74,24 @@ public final class AtlasCommand {
         int cores = Runtime.getRuntime().availableProcessors();
         long maxHeap = Runtime.getRuntime().maxMemory() / (1024 * 1024);
         boolean vectorAvailable = isVectorApiAvailable();
+        var stats = dev.xssmusashi.atlas.mc.AtlasMixinStats.class;
         boolean tickMixin = dev.xssmusashi.atlas.mc.AtlasMixinStats.serverTickMixinActive();
+        boolean chunkGenMixin = dev.xssmusashi.atlas.mc.AtlasMixinStats.chunkGenMixinActive();
+        boolean noisePopulateMixin = dev.xssmusashi.atlas.mc.AtlasMixinStats.noisePopulateMixinActive();
         long ticks = dev.xssmusashi.atlas.mc.AtlasMixinStats.ticks();
+        long chunkGens = dev.xssmusashi.atlas.mc.AtlasMixinStats.chunkGenSeen();
+        long noisePops = dev.xssmusashi.atlas.mc.AtlasMixinStats.noisePopulateIntercepts();
 
         sendMessage(src, "§6§l[Atlas] §rstatus");
         sendMessage(src, "§7  version:       §f0.1.0-SNAPSHOT (Phase 1)");
         sendMessage(src, "§7  cores:         §f" + cores);
         sendMessage(src, "§7  max heap:      §f" + maxHeap + " MB");
         sendMessage(src, "§7  Vector API:    §f" + (vectorAvailable ? "§aAVAILABLE" : "§cMISSING"));
-        sendMessage(src, "§7  Mixin (tick):  §f" + (tickMixin
-            ? "§aATTACHED §7(" + ticks + " ticks observed)"
-            : "§cNOT ATTACHED — Phase 2 worldgen mixins won't work"));
-        sendMessage(src, "§7  pipeline mode: §fengine + service API");
-        sendMessage(src, "§7Try: §e/atlas bench§7 or §e/atlas pregen 32 persist");
+        sendMessage(src, "§7  Mixins:");
+        sendMessage(src, "§7    server-tick:   §f" + (tickMixin ? "§a✓ " + ticks + " ticks" : "§c✗"));
+        sendMessage(src, "§7    chunkgen-init: §f" + (chunkGenMixin ? "§a✓ " + chunkGens + " gens seen" : "§c✗ (move/load a chunk first)"));
+        sendMessage(src, "§7    noise-populate:§f" + (noisePopulateMixin ? "§a✓ " + noisePops + " calls intercepted" : "§c✗ (signature mismatch in 26.1?)"));
+        sendMessage(src, "§7Try: §e/atlas bench§7 or §e/atlas pregen 32 persist 4");
         return 1;
     }
 
