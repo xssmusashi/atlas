@@ -10,16 +10,9 @@ import org.objectweb.asm.Type;
  * Emits a Java class implementing {@link CompiledSampler} by walking a {@link DfcNode}
  * tree and inlining the computation as scalar bytecode.
  * <p>
- * Generated class shape:
- * <pre>
- *   public final class AtlasJit_N implements CompiledSampler {
- *       public double sample(int x, int y, int z, long seed) {
- *           return &lt;inlined tree&gt;;
- *       }
- *   }
- * </pre>
- * Each {@link DfcNode} variant is emitted as its corresponding bytecode primitives —
+ * Each {@link DfcNode} variant emits its corresponding bytecode primitives —
  * no virtual dispatch, no switch, no record field access. JVM C2 inlines aggressively.
+ * Noise nodes call back into {@link NoiseRuntime} via {@code INVOKESTATIC}.
  */
 final class ScalarAsmEmitter implements Opcodes {
 
@@ -29,7 +22,9 @@ final class ScalarAsmEmitter implements Opcodes {
     private static final int X_SLOT = 1;
     private static final int Y_SLOT = 2;
     private static final int Z_SLOT = 3;
-    // long seed occupies slots 4-5
+    private static final int SEED_SLOT = 4;
+
+    private static final String NOISE_RUNTIME = Type.getInternalName(NoiseRuntime.class);
 
     static byte[] emit(DfcNode root, String internalName) {
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
@@ -106,6 +101,29 @@ final class ScalarAsmEmitter implements Opcodes {
                 mv.visitMethodInsn(INVOKESTATIC, "java/lang/Math", "max", "(DD)D", false);
                 mv.visitLdcInsn(c.max());
                 mv.visitMethodInsn(INVOKESTATIC, "java/lang/Math", "min", "(DD)D", false);
+            }
+
+            case DfcNode.PerlinNoise n -> {
+                // NoiseRuntime.perlin(seed + offset, x*freq, y*freq, z*freq)
+                mv.visitVarInsn(LLOAD, SEED_SLOT);
+                mv.visitLdcInsn(n.seedOffset());
+                mv.visitInsn(LADD);
+                emitNode(mv, n.x()); mv.visitLdcInsn(n.frequency()); mv.visitInsn(DMUL);
+                emitNode(mv, n.y()); mv.visitLdcInsn(n.frequency()); mv.visitInsn(DMUL);
+                emitNode(mv, n.z()); mv.visitLdcInsn(n.frequency()); mv.visitInsn(DMUL);
+                mv.visitMethodInsn(INVOKESTATIC, NOISE_RUNTIME, "perlin", "(JDDD)D", false);
+            }
+            case DfcNode.OctavePerlin n -> {
+                mv.visitVarInsn(LLOAD, SEED_SLOT);
+                mv.visitLdcInsn(n.seedOffset());
+                mv.visitInsn(LADD);
+                mv.visitLdcInsn(n.octaves());
+                mv.visitLdcInsn(n.persistence());
+                mv.visitLdcInsn(n.lacunarity());
+                emitNode(mv, n.x()); mv.visitLdcInsn(n.frequency()); mv.visitInsn(DMUL);
+                emitNode(mv, n.y()); mv.visitLdcInsn(n.frequency()); mv.visitInsn(DMUL);
+                emitNode(mv, n.z()); mv.visitLdcInsn(n.frequency()); mv.visitInsn(DMUL);
+                mv.visitMethodInsn(INVOKESTATIC, NOISE_RUNTIME, "octavePerlin", "(JIDDDDD)D", false);
             }
         }
     }

@@ -11,15 +11,8 @@ import java.nio.charset.StandardCharsets;
 /**
  * Parses Minecraft DensityFunction JSON into {@link DfcNode} AST.
  * <p>
- * Supported node types (Phase 1, sub-plans 1-2):
- * <ul>
- *   <li>{@code minecraft:constant} (and short number form)</li>
- *   <li>{@code minecraft:x_pos}, {@code minecraft:y_clamped_gradient} (mapped to YPos), {@code minecraft:z_pos}</li>
- *   <li>{@code minecraft:add}, {@code minecraft:mul}, {@code minecraft:min}, {@code minecraft:max}</li>
- *   <li>{@code minecraft:abs}, {@code minecraft:clamp}</li>
- * </ul>
- * Plus Atlas-specific aliases: {@code atlas:x_pos}, {@code atlas:y_pos}, {@code atlas:z_pos},
- * {@code atlas:sub}, {@code atlas:negate}.
+ * Supported types: constant (and short number), x/y/z pos, add/sub/mul/abs/negate,
+ * min/max/clamp, atlas:perlin_noise, atlas:octave_perlin.
  * <p>
  * Unknown types throw {@link IllegalArgumentException}.
  */
@@ -60,6 +53,20 @@ public final class DfcLoader {
                 parse(obj.get("input")),
                 obj.get("min").getAsDouble(),
                 obj.get("max").getAsDouble()
+            );
+
+            case "atlas:perlin_noise" -> new DfcNode.PerlinNoise(
+                obj.has("seed_offset") ? obj.get("seed_offset").getAsLong() : 0L,
+                obj.has("frequency")   ? obj.get("frequency").getAsDouble() : 1.0,
+                parse(obj.get("x")), parse(obj.get("y")), parse(obj.get("z"))
+            );
+            case "atlas:octave_perlin" -> new DfcNode.OctavePerlin(
+                obj.has("seed_offset") ? obj.get("seed_offset").getAsLong() : 0L,
+                obj.has("octaves")     ? obj.get("octaves").getAsInt() : 4,
+                obj.has("persistence") ? obj.get("persistence").getAsDouble() : 0.5,
+                obj.has("lacunarity")  ? obj.get("lacunarity").getAsDouble() : 2.0,
+                obj.has("frequency")   ? obj.get("frequency").getAsDouble() : 1.0,
+                parse(obj.get("x")), parse(obj.get("y")), parse(obj.get("z"))
             );
 
             default -> throw new IllegalArgumentException(

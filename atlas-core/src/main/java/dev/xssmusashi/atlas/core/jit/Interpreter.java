@@ -36,6 +36,19 @@ public final class Interpreter implements CompiledSampler {
                 double v = eval(c.input(), x, y, z, seed);
                 yield Math.min(Math.max(v, c.min()), c.max());
             }
+            case DfcNode.PerlinNoise n -> NoiseRuntime.perlin(
+                seed + n.seedOffset(),
+                eval(n.x(), x, y, z, seed) * n.frequency(),
+                eval(n.y(), x, y, z, seed) * n.frequency(),
+                eval(n.z(), x, y, z, seed) * n.frequency()
+            );
+            case DfcNode.OctavePerlin n -> NoiseRuntime.octavePerlin(
+                seed + n.seedOffset(),
+                n.octaves(), n.persistence(), n.lacunarity(),
+                eval(n.x(), x, y, z, seed) * n.frequency(),
+                eval(n.y(), x, y, z, seed) * n.frequency(),
+                eval(n.z(), x, y, z, seed) * n.frequency()
+            );
         };
     }
 }

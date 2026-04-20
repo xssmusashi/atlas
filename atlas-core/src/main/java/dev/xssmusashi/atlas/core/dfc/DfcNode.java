@@ -9,6 +9,7 @@ package dev.xssmusashi.atlas.core.dfc;
  * Sub-plan 2: positional ({@link XPos}, {@link YPos}, {@link ZPos}),
  * arithmetic ({@link Add}, {@link Sub}, {@link Mul}, {@link Negate}, {@link Abs}),
  * control ({@link Min}, {@link Max}, {@link Clamp}).
+ * Sub-plan 3: noise ({@link PerlinNoise}, {@link OctavePerlin}).
  */
 public sealed interface DfcNode {
 
@@ -29,4 +30,13 @@ public sealed interface DfcNode {
     record Min(DfcNode left, DfcNode right) implements DfcNode {}
     record Max(DfcNode left, DfcNode right) implements DfcNode {}
     record Clamp(DfcNode input, double min, double max) implements DfcNode {}
+
+    // --- noise ---
+    /** Single-octave 3D Perlin noise sampled at ({@code x}, {@code y}, {@code z}) × {@code frequency}. */
+    record PerlinNoise(long seedOffset, double frequency,
+                       DfcNode x, DfcNode y, DfcNode z) implements DfcNode {}
+
+    /** Fractional Brownian Motion: {@code octaves}-layer Perlin with persistence/lacunarity. */
+    record OctavePerlin(long seedOffset, int octaves, double persistence, double lacunarity,
+                        double frequency, DfcNode x, DfcNode y, DfcNode z) implements DfcNode {}
 }

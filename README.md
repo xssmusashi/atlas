@@ -8,7 +8,7 @@ Next-generation Minecraft worldgen for Fabric: tile-based pipeline, JIT-compiled
 
 - ✅ Sub-plan 1 (`v0.1.0-bootstrap`): multi-module project, Constant JIT, JMH baseline.
 - ✅ Sub-plan 2 (`v0.2.0-arithmetic`): positional + arithmetic + control nodes, **24.7× JIT speedup** on a 15-op tree (honest loop bench).
-- ⏳ Sub-plan 3: Noise nodes (Perlin/Simplex) + `sampleSlice16` + Vector API emitter.
+- ✅ Sub-plan 3 (`v0.3.0-noise`): Perlin + OctavePerlin nodes, **3.34M noise samples/sec** on worldgen-shaped tree (18 octaves + clamp). JIT speedup is modest (1.22×) here because perlin compute dominates dispatch — real wins land with parallel tile pipeline.
 - ⏳ Sub-plan 4: Tile pipeline + DAG scheduler.
 - ⏳ Sub-plan 5: Region storage (.atr format).
 - ⏳ Sub-plan 6: Real Fabric Loom integration + ChunkGenerator.
