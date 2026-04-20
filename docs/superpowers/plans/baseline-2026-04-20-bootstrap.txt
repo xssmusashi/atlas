@@ -1,0 +1,181 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.4.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :atlas-bench:compileJava NO-SOURCE
+> Task :atlas-bench:processResources NO-SOURCE
+> Task :atlas-bench:classes UP-TO-DATE
+> Task :atlas-bench:compileTestJava NO-SOURCE
+> Task :atlas-bench:processTestResources NO-SOURCE
+> Task :atlas-bench:testClasses UP-TO-DATE
+> Task :atlas-bench:processJmhResources NO-SOURCE
+> Task :atlas-core:compileJava UP-TO-DATE
+> Task :atlas-core:processResources NO-SOURCE
+> Task :atlas-core:classes UP-TO-DATE
+> Task :atlas-core:jar UP-TO-DATE
+> Task :atlas-bench:compileJmhJava FROM-CACHE
+> Task :atlas-bench:jmhClasses UP-TO-DATE
+> Task :atlas-bench:jmhRunBytecodeGenerator FROM-CACHE
+> Task :atlas-bench:jmhCompileGeneratedClasses FROM-CACHE
+> Task :atlas-bench:jmhJar
+
+> Task :atlas-bench:jmh
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by org.openjdk.jmh.util.Utils (file:/C:/Users/ismail/.gradle/caches/modules-2/files-2.1/org.openjdk.jmh/jmh-core/1.37/896f27e49105b35ea1964319c83d12082e7a79ef/jmh-core-1.37.jar)
+WARNING: Please consider reporting this to the maintainers of class org.openjdk.jmh.util.Utils
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+# JMH version: 1.37
+# VM version: JDK 25.0.2, OpenJDK 64-Bit Server VM, 25.0.2+10-LTS
+# VM invoker: C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot\bin\java.exe
+# VM options: -Dfile.encoding=UTF-8 -Djava.io.tmpdir=D:\atlas\atlas-bench\build\tmp\jmh -Duser.country=US -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 2 iterations, 3 s each
+# Measurement: 3 iterations, 3 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: dev.xssmusashi.atlas.bench.ConstantNodeBench.interpreter_sample
+
+# Run progress: 0.00% complete, ETA 00:01:00
+# Fork: 1 of 1
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by org.openjdk.jmh.util.Utils (file:/C:/Users/ismail/.gradle/caches/modules-2/files-2.1/org.openjdk.jmh/jmh-core/1.37/896f27e49105b35ea1964319c83d12082e7a79ef/jmh-core-1.37.jar)
+WARNING: Please consider reporting this to the maintainers of class org.openjdk.jmh.util.Utils
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+# Warmup Iteration   1: 1558776.666 ops/ms
+# Warmup Iteration   2: 1536128.408 ops/ms
+Iteration   1: 1478705.499 ops/ms
+Iteration   2: 1487569.925 ops/ms
+Iteration   3: 1473657.366 ops/ms
+
+
+Result "dev.xssmusashi.atlas.bench.ConstantNodeBench.interpreter_sample":
+  1479977.597 ±(99.9%) 128490.078 ops/ms [Average]
+  (min, avg, max) = (1473657.366, 1479977.597, 1487569.925), stdev = 7042.975
+  CI (99.9%): [1351487.519, 1608467.675] (assumes normal distribution)
+
+
+# JMH version: 1.37
+# VM version: JDK 25.0.2, OpenJDK 64-Bit Server VM, 25.0.2+10-LTS
+# VM invoker: C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot\bin\java.exe
+# VM options: -Dfile.encoding=UTF-8 -Djava.io.tmpdir=D:\atlas\atlas-bench\build\tmp\jmh -Duser.country=US -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 2 iterations, 3 s each
+# Measurement: 3 iterations, 3 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: dev.xssmusashi.atlas.bench.ConstantNodeBench.interpreter_sample_loop_1024
+
+# Run progress: 25.00% complete, ETA 00:00:45
+# Fork: 1 of 1
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by org.openjdk.jmh.util.Utils (file:/C:/Users/ismail/.gradle/caches/modules-2/files-2.1/org.openjdk.jmh/jmh-core/1.37/896f27e49105b35ea1964319c83d12082e7a79ef/jmh-core-1.37.jar)
+WARNING: Please consider reporting this to the maintainers of class org.openjdk.jmh.util.Utils
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+# Warmup Iteration   1: 58731.834 ops/ms
+# Warmup Iteration   2: 59132.775 ops/ms
+Iteration   1: 58759.416 ops/ms
+Iteration   2: 58684.469 ops/ms
+Iteration   3: 58984.625 ops/ms
+
+
+Result "dev.xssmusashi.atlas.bench.ConstantNodeBench.interpreter_sample_loop_1024":
+  58809.504 ±(99.9%) 2850.053 ops/ms [Average]
+  (min, avg, max) = (58684.469, 58809.504, 58984.625), stdev = 156.221
+  CI (99.9%): [55959.451, 61659.556] (assumes normal distribution)
+
+
+# JMH version: 1.37
+# VM version: JDK 25.0.2, OpenJDK 64-Bit Server VM, 25.0.2+10-LTS
+# VM invoker: C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot\bin\java.exe
+# VM options: -Dfile.encoding=UTF-8 -Djava.io.tmpdir=D:\atlas\atlas-bench\build\tmp\jmh -Duser.country=US -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 2 iterations, 3 s each
+# Measurement: 3 iterations, 3 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: dev.xssmusashi.atlas.bench.ConstantNodeBench.jit_sample
+
+# Run progress: 50.00% complete, ETA 00:00:30
+# Fork: 1 of 1
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by org.openjdk.jmh.util.Utils (file:/C:/Users/ismail/.gradle/caches/modules-2/files-2.1/org.openjdk.jmh/jmh-core/1.37/896f27e49105b35ea1964319c83d12082e7a79ef/jmh-core-1.37.jar)
+WARNING: Please consider reporting this to the maintainers of class org.openjdk.jmh.util.Utils
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+# Warmup Iteration   1: 2625375.133 ops/ms
+# Warmup Iteration   2: 2558651.927 ops/ms
+Iteration   1: 2571948.597 ops/ms
+Iteration   2: 2549683.873 ops/ms
+Iteration   3: 2553333.372 ops/ms
+
+
+Result "dev.xssmusashi.atlas.bench.ConstantNodeBench.jit_sample":
+  2558321.947 ±(99.9%) 217853.195 ops/ms [Average]
+  (min, avg, max) = (2549683.873, 2558321.947, 2571948.597), stdev = 11941.269
+  CI (99.9%): [2340468.752, 2776175.143] (assumes normal distribution)
+
+
+# JMH version: 1.37
+# VM version: JDK 25.0.2, OpenJDK 64-Bit Server VM, 25.0.2+10-LTS
+# VM invoker: C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot\bin\java.exe
+# VM options: -Dfile.encoding=UTF-8 -Djava.io.tmpdir=D:\atlas\atlas-bench\build\tmp\jmh -Duser.country=US -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 2 iterations, 3 s each
+# Measurement: 3 iterations, 3 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: dev.xssmusashi.atlas.bench.ConstantNodeBench.jit_sample_loop_1024
+
+# Run progress: 75.00% complete, ETA 00:00:15
+# Fork: 1 of 1
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by org.openjdk.jmh.util.Utils (file:/C:/Users/ismail/.gradle/caches/modules-2/files-2.1/org.openjdk.jmh/jmh-core/1.37/896f27e49105b35ea1964319c83d12082e7a79ef/jmh-core-1.37.jar)
+WARNING: Please consider reporting this to the maintainers of class org.openjdk.jmh.util.Utils
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+# Warmup Iteration   1: 59231.165 ops/ms
+# Warmup Iteration   2: 59187.831 ops/ms
+Iteration   1: 59630.964 ops/ms
+Iteration   2: 59543.590 ops/ms
+Iteration   3: 60110.156 ops/ms
+
+
+Result "dev.xssmusashi.atlas.bench.ConstantNodeBench.jit_sample_loop_1024":
+  59761.570 ±(99.9%) 5564.861 ops/ms [Average]
+  (min, avg, max) = (59543.590, 59761.570, 60110.156), stdev = 305.029
+  CI (99.9%): [54196.709, 65326.431] (assumes normal distribution)
+
+
+# Run complete. Total time: 00:01:00
+
+REMEMBER: The numbers below are just data. To gain reusable insights, you need to follow up on
+why the numbers are the way they are. Use profilers (see -prof, -lprof), design factorial
+experiments, perform baseline and negative tests that provide experimental control, make sure
+the benchmarking environment is safe on JVM/OS/HW level, ask for reviews from the domain experts.
+Do not assume the numbers tell you what you want them to tell.
+
+NOTE: Current JVM experimentally supports Compiler Blackholes, and they are in use. Please exercise
+extra caution when trusting the results, look into the generated code to check the benchmark still
+works, and factor in a small probability of new VM bugs. Additionally, while comparisons between
+different JVMs are already problematic, the performance difference caused by different Blackhole
+modes can be very significant. Please make sure you use the consistent Blackhole mode for comparisons.
+
+Benchmark                                        Mode  Cnt        Score        Error   Units
+ConstantNodeBench.interpreter_sample            thrpt    3  1479977.597 ± 128490.078  ops/ms
+ConstantNodeBench.interpreter_sample_loop_1024  thrpt    3    58809.504 ±   2850.053  ops/ms
+ConstantNodeBench.jit_sample                    thrpt    3  2558321.947 ± 217853.195  ops/ms
+ConstantNodeBench.jit_sample_loop_1024          thrpt    3    59761.570 ±   5564.861  ops/ms
+
+Benchmark result is saved to D:\atlas\atlas-bench\build\reports\jmh\results.json
+
+[Incubating] Problems report is available at: file:///D:/atlas/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.4.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 1m 6s
+7 actionable tasks: 2 executed, 3 from cache, 2 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.4.1/userguide/configuration_cache_enabling.html
