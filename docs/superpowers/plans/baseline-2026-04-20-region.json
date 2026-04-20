@@ -1,0 +1,1096 @@
+[
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "dev.xssmusashi.atlas.bench.ArithmeticTreeBench.interpreter_loop_4096",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.2.10-hotspot\\bin\\java.exe",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Djava.io.tmpdir=D:\\atlas\\atlas-bench\\build\\tmp\\jmh",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "25.0.2",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "25.0.2+10-LTS",
+        "warmupIterations" : 2,
+        "warmupTime" : "3 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 3,
+        "measurementTime" : "3 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 3.090508654598819,
+            "scoreError" : 0.28001669004385804,
+            "scoreConfidence" : [
+                2.810491964554961,
+                3.370525344642677
+            ],
+            "scorePercentiles" : {
+                "0.0" : 3.0789306212640923,
+                "50.0" : 3.084676861858515,
+                "90.0" : 3.10791848067385,
+                "95.0" : 3.10791848067385,
+                "99.0" : 3.10791848067385,
+                "99.9" : 3.10791848067385,
+                "99.99" : 3.10791848067385,
+                "99.999" : 3.10791848067385,
+                "99.9999" : 3.10791848067385,
+                "100.0" : 3.10791848067385
+            },
+            "scoreUnit" : "ops/ms",
+            "rawData" : [
+                [
+                    3.10791848067385,
+                    3.0789306212640923,
+                    3.084676861858515
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "dev.xssmusashi.atlas.bench.ArithmeticTreeBench.interpreter_single",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.2.10-hotspot\\bin\\java.exe",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Djava.io.tmpdir=D:\\atlas\\atlas-bench\\build\\tmp\\jmh",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "25.0.2",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "25.0.2+10-LTS",
+        "warmupIterations" : 2,
+        "warmupTime" : "3 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 3,
+        "measurementTime" : "3 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 14587.698310904207,
+            "scoreError" : 6024.8852774162715,
+            "scoreConfidence" : [
+                8562.813033487935,
+                20612.583588320478
+            ],
+            "scorePercentiles" : {
+                "0.0" : 14207.361055818112,
+                "50.0" : 14754.013809239312,
+                "90.0" : 14801.720067655198,
+                "95.0" : 14801.720067655198,
+                "99.0" : 14801.720067655198,
+                "99.9" : 14801.720067655198,
+                "99.99" : 14801.720067655198,
+                "99.999" : 14801.720067655198,
+                "99.9999" : 14801.720067655198,
+                "100.0" : 14801.720067655198
+            },
+            "scoreUnit" : "ops/ms",
+            "rawData" : [
+                [
+                    14801.720067655198,
+                    14754.013809239312,
+                    14207.361055818112
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "dev.xssmusashi.atlas.bench.ArithmeticTreeBench.jit_loop_4096",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.2.10-hotspot\\bin\\java.exe",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Djava.io.tmpdir=D:\\atlas\\atlas-bench\\build\\tmp\\jmh",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "25.0.2",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "25.0.2+10-LTS",
+        "warmupIterations" : 2,
+        "warmupTime" : "3 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 3,
+        "measurementTime" : "3 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 89.23372264374086,
+            "scoreError" : 3.4531585449683146,
+            "scoreConfidence" : [
+                85.78056409877254,
+                92.68688118870918
+            ],
+            "scorePercentiles" : {
+                "0.0" : 89.06125942710406,
+                "50.0" : 89.20368313787519,
+                "90.0" : 89.43622536624333,
+                "95.0" : 89.43622536624333,
+                "99.0" : 89.43622536624333,
+                "99.9" : 89.43622536624333,
+                "99.99" : 89.43622536624333,
+                "99.999" : 89.43622536624333,
+                "99.9999" : 89.43622536624333,
+                "100.0" : 89.43622536624333
+            },
+            "scoreUnit" : "ops/ms",
+            "rawData" : [
+                [
+                    89.06125942710406,
+                    89.43622536624333,
+                    89.20368313787519
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "dev.xssmusashi.atlas.bench.ArithmeticTreeBench.jit_single",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.2.10-hotspot\\bin\\java.exe",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Djava.io.tmpdir=D:\\atlas\\atlas-bench\\build\\tmp\\jmh",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "25.0.2",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "25.0.2+10-LTS",
+        "warmupIterations" : 2,
+        "warmupTime" : "3 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 3,
+        "measurementTime" : "3 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 2589722.2270831103,
+            "scoreError" : 110122.22313872878,
+            "scoreConfidence" : [
+                2479600.0039443816,
+                2699844.450221839
+            ],
+            "scorePercentiles" : {
+                "0.0" : 2583515.6585787404,
+                "50.0" : 2590078.8339683507,
+                "90.0" : 2595572.1887022397,
+                "95.0" : 2595572.1887022397,
+                "99.0" : 2595572.1887022397,
+                "99.9" : 2595572.1887022397,
+                "99.99" : 2595572.1887022397,
+                "99.999" : 2595572.1887022397,
+                "99.9999" : 2595572.1887022397,
+                "100.0" : 2595572.1887022397
+            },
+            "scoreUnit" : "ops/ms",
+            "rawData" : [
+                [
+                    2590078.8339683507,
+                    2583515.6585787404,
+                    2595572.1887022397
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "dev.xssmusashi.atlas.bench.ConstantNodeBench.interpreter_sample",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.2.10-hotspot\\bin\\java.exe",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Djava.io.tmpdir=D:\\atlas\\atlas-bench\\build\\tmp\\jmh",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "25.0.2",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "25.0.2+10-LTS",
+        "warmupIterations" : 2,
+        "warmupTime" : "3 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 3,
+        "measurementTime" : "3 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 577703.5784816927,
+            "scoreError" : 53413.88138149545,
+            "scoreConfidence" : [
+                524289.6971001972,
+                631117.4598631882
+            ],
+            "scorePercentiles" : {
+                "0.0" : 575905.3535309299,
+                "50.0" : 576123.4220578845,
+                "90.0" : 581081.9598562636,
+                "95.0" : 581081.9598562636,
+                "99.0" : 581081.9598562636,
+                "99.9" : 581081.9598562636,
+                "99.99" : 581081.9598562636,
+                "99.999" : 581081.9598562636,
+                "99.9999" : 581081.9598562636,
+                "100.0" : 581081.9598562636
+            },
+            "scoreUnit" : "ops/ms",
+            "rawData" : [
+                [
+                    576123.4220578845,
+                    575905.3535309299,
+                    581081.9598562636
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "dev.xssmusashi.atlas.bench.ConstantNodeBench.interpreter_sample_loop_1024",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.2.10-hotspot\\bin\\java.exe",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Djava.io.tmpdir=D:\\atlas\\atlas-bench\\build\\tmp\\jmh",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "25.0.2",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "25.0.2+10-LTS",
+        "warmupIterations" : 2,
+        "warmupTime" : "3 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 3,
+        "measurementTime" : "3 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 568.6627237909287,
+            "scoreError" : 42.618380367338226,
+            "scoreConfidence" : [
+                526.0443434235905,
+                611.2811041582669
+            ],
+            "scorePercentiles" : {
+                "0.0" : 566.2610009753234,
+                "50.0" : 568.8001196124022,
+                "90.0" : 570.9270507850603,
+                "95.0" : 570.9270507850603,
+                "99.0" : 570.9270507850603,
+                "99.9" : 570.9270507850603,
+                "99.99" : 570.9270507850603,
+                "99.999" : 570.9270507850603,
+                "99.9999" : 570.9270507850603,
+                "100.0" : 570.9270507850603
+            },
+            "scoreUnit" : "ops/ms",
+            "rawData" : [
+                [
+                    568.8001196124022,
+                    570.9270507850603,
+                    566.2610009753234
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "dev.xssmusashi.atlas.bench.ConstantNodeBench.jit_sample",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.2.10-hotspot\\bin\\java.exe",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Djava.io.tmpdir=D:\\atlas\\atlas-bench\\build\\tmp\\jmh",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "25.0.2",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "25.0.2+10-LTS",
+        "warmupIterations" : 2,
+        "warmupTime" : "3 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 3,
+        "measurementTime" : "3 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 2575615.694939808,
+            "scoreError" : 77919.8847431382,
+            "scoreConfidence" : [
+                2497695.81019667,
+                2653535.579682946
+            ],
+            "scorePercentiles" : {
+                "0.0" : 2571383.469072607,
+                "50.0" : 2575539.074023962,
+                "90.0" : 2579924.5417228555,
+                "95.0" : 2579924.5417228555,
+                "99.0" : 2579924.5417228555,
+                "99.9" : 2579924.5417228555,
+                "99.99" : 2579924.5417228555,
+                "99.999" : 2579924.5417228555,
+                "99.9999" : 2579924.5417228555,
+                "100.0" : 2579924.5417228555
+            },
+            "scoreUnit" : "ops/ms",
+            "rawData" : [
+                [
+                    2575539.074023962,
+                    2571383.469072607,
+                    2579924.5417228555
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "dev.xssmusashi.atlas.bench.ConstantNodeBench.jit_sample_loop_1024",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.2.10-hotspot\\bin\\java.exe",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Djava.io.tmpdir=D:\\atlas\\atlas-bench\\build\\tmp\\jmh",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "25.0.2",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "25.0.2+10-LTS",
+        "warmupIterations" : 2,
+        "warmupTime" : "3 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 3,
+        "measurementTime" : "3 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 59909.97772206704,
+            "scoreError" : 2067.97848371613,
+            "scoreConfidence" : [
+                57841.99923835091,
+                61977.956205783164
+            ],
+            "scorePercentiles" : {
+                "0.0" : 59804.24072725476,
+                "50.0" : 59896.03573322847,
+                "90.0" : 60029.65670571787,
+                "95.0" : 60029.65670571787,
+                "99.0" : 60029.65670571787,
+                "99.9" : 60029.65670571787,
+                "99.99" : 60029.65670571787,
+                "99.999" : 60029.65670571787,
+                "99.9999" : 60029.65670571787,
+                "100.0" : 60029.65670571787
+            },
+            "scoreUnit" : "ops/ms",
+            "rawData" : [
+                [
+                    59804.24072725476,
+                    59896.03573322847,
+                    60029.65670571787
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "dev.xssmusashi.atlas.bench.WorldgenNoiseBench.interpreter_chunkColumn_6144",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.2.10-hotspot\\bin\\java.exe",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Djava.io.tmpdir=D:\\atlas\\atlas-bench\\build\\tmp\\jmh",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "25.0.2",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "25.0.2+10-LTS",
+        "warmupIterations" : 2,
+        "warmupTime" : "3 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 3,
+        "measurementTime" : "3 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 0.4128668100970169,
+            "scoreError" : 0.024077994005327827,
+            "scoreConfidence" : [
+                0.3887888160916891,
+                0.43694480410234476
+            ],
+            "scorePercentiles" : {
+                "0.0" : 0.4119606688767366,
+                "50.0" : 0.41225872906409433,
+                "90.0" : 0.4143810323502196,
+                "95.0" : 0.4143810323502196,
+                "99.0" : 0.4143810323502196,
+                "99.9" : 0.4143810323502196,
+                "99.99" : 0.4143810323502196,
+                "99.999" : 0.4143810323502196,
+                "99.9999" : 0.4143810323502196,
+                "100.0" : 0.4143810323502196
+            },
+            "scoreUnit" : "ops/ms",
+            "rawData" : [
+                [
+                    0.4119606688767366,
+                    0.41225872906409433,
+                    0.4143810323502196
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "dev.xssmusashi.atlas.bench.WorldgenNoiseBench.interpreter_single",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.2.10-hotspot\\bin\\java.exe",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Djava.io.tmpdir=D:\\atlas\\atlas-bench\\build\\tmp\\jmh",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "25.0.2",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "25.0.2+10-LTS",
+        "warmupIterations" : 2,
+        "warmupTime" : "3 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 3,
+        "measurementTime" : "3 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 2711.6080353019274,
+            "scoreError" : 344.721634037611,
+            "scoreConfidence" : [
+                2366.886401264316,
+                3056.3296693395387
+            ],
+            "scorePercentiles" : {
+                "0.0" : 2692.139794032436,
+                "50.0" : 2712.8113198851456,
+                "90.0" : 2729.8729919882007,
+                "95.0" : 2729.8729919882007,
+                "99.0" : 2729.8729919882007,
+                "99.9" : 2729.8729919882007,
+                "99.99" : 2729.8729919882007,
+                "99.999" : 2729.8729919882007,
+                "99.9999" : 2729.8729919882007,
+                "100.0" : 2729.8729919882007
+            },
+            "scoreUnit" : "ops/ms",
+            "rawData" : [
+                [
+                    2692.139794032436,
+                    2729.8729919882007,
+                    2712.8113198851456
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "dev.xssmusashi.atlas.bench.WorldgenNoiseBench.jit_chunkColumn_6144",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.2.10-hotspot\\bin\\java.exe",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Djava.io.tmpdir=D:\\atlas\\atlas-bench\\build\\tmp\\jmh",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "25.0.2",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "25.0.2+10-LTS",
+        "warmupIterations" : 2,
+        "warmupTime" : "3 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 3,
+        "measurementTime" : "3 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 0.5008233115410984,
+            "scoreError" : 0.011790264364777266,
+            "scoreConfidence" : [
+                0.4890330471763211,
+                0.5126135759058756
+            ],
+            "scorePercentiles" : {
+                "0.0" : 0.5003782348797983,
+                "50.0" : 0.5005271134674387,
+                "90.0" : 0.5015645862760584,
+                "95.0" : 0.5015645862760584,
+                "99.0" : 0.5015645862760584,
+                "99.9" : 0.5015645862760584,
+                "99.99" : 0.5015645862760584,
+                "99.999" : 0.5015645862760584,
+                "99.9999" : 0.5015645862760584,
+                "100.0" : 0.5015645862760584
+            },
+            "scoreUnit" : "ops/ms",
+            "rawData" : [
+                [
+                    0.5005271134674387,
+                    0.5003782348797983,
+                    0.5015645862760584
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "dev.xssmusashi.atlas.bench.WorldgenNoiseBench.jit_single",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.2.10-hotspot\\bin\\java.exe",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Djava.io.tmpdir=D:\\atlas\\atlas-bench\\build\\tmp\\jmh",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "25.0.2",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "25.0.2+10-LTS",
+        "warmupIterations" : 2,
+        "warmupTime" : "3 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 3,
+        "measurementTime" : "3 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 3350.2305803632566,
+            "scoreError" : 336.8825115764214,
+            "scoreConfidence" : [
+                3013.348068786835,
+                3687.1130919396783
+            ],
+            "scorePercentiles" : {
+                "0.0" : 3329.316371836684,
+                "50.0" : 3357.092162813332,
+                "90.0" : 3364.2832064397526,
+                "95.0" : 3364.2832064397526,
+                "99.0" : 3364.2832064397526,
+                "99.9" : 3364.2832064397526,
+                "99.99" : 3364.2832064397526,
+                "99.999" : 3364.2832064397526,
+                "99.9999" : 3364.2832064397526,
+                "100.0" : 3364.2832064397526
+            },
+            "scoreUnit" : "ops/ms",
+            "rawData" : [
+                [
+                    3357.092162813332,
+                    3364.2832064397526,
+                    3329.316371836684
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "dev.xssmusashi.atlas.bench.RegionIoBench.deserialize_only",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.2.10-hotspot\\bin\\java.exe",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Djava.io.tmpdir=D:\\atlas\\atlas-bench\\build\\tmp\\jmh",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "25.0.2",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "25.0.2+10-LTS",
+        "warmupIterations" : 2,
+        "warmupTime" : "3 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 3,
+        "measurementTime" : "3 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 40.205435748538015,
+            "scoreError" : 1.5770279762653967,
+            "scoreConfidence" : [
+                38.62840777227262,
+                41.782463724803414
+            ],
+            "scorePercentiles" : {
+                "0.0" : 40.135556578947366,
+                "50.0" : 40.17865066666667,
+                "90.0" : 40.3021,
+                "95.0" : 40.3021,
+                "99.0" : 40.3021,
+                "99.9" : 40.3021,
+                "99.99" : 40.3021,
+                "99.999" : 40.3021,
+                "99.9999" : 40.3021,
+                "100.0" : 40.3021
+            },
+            "scoreUnit" : "ms/op",
+            "rawData" : [
+                [
+                    40.135556578947366,
+                    40.3021,
+                    40.17865066666667
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "dev.xssmusashi.atlas.bench.RegionIoBench.readTile_roundtrip",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.2.10-hotspot\\bin\\java.exe",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Djava.io.tmpdir=D:\\atlas\\atlas-bench\\build\\tmp\\jmh",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "25.0.2",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "25.0.2+10-LTS",
+        "warmupIterations" : 2,
+        "warmupTime" : "3 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 3,
+        "measurementTime" : "3 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 138.14922437417655,
+            "scoreError" : 26.583497913460253,
+            "scoreConfidence" : [
+                111.5657264607163,
+                164.73272228763682
+            ],
+            "scorePercentiles" : {
+                "0.0" : 136.90039130434783,
+                "50.0" : 137.79714545454544,
+                "90.0" : 139.75013636363636,
+                "95.0" : 139.75013636363636,
+                "99.0" : 139.75013636363636,
+                "99.9" : 139.75013636363636,
+                "99.99" : 139.75013636363636,
+                "99.999" : 139.75013636363636,
+                "99.9999" : 139.75013636363636,
+                "100.0" : 139.75013636363636
+            },
+            "scoreUnit" : "ms/op",
+            "rawData" : [
+                [
+                    136.90039130434783,
+                    137.79714545454544,
+                    139.75013636363636
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "dev.xssmusashi.atlas.bench.RegionIoBench.serialize_only",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.2.10-hotspot\\bin\\java.exe",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Djava.io.tmpdir=D:\\atlas\\atlas-bench\\build\\tmp\\jmh",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "25.0.2",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "25.0.2+10-LTS",
+        "warmupIterations" : 2,
+        "warmupTime" : "3 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 3,
+        "measurementTime" : "3 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 45.21844626865672,
+            "scoreError" : 1.9780529179176478,
+            "scoreConfidence" : [
+                43.24039335073907,
+                47.19649918657437
+            ],
+            "scorePercentiles" : {
+                "0.0" : 45.134726865671645,
+                "50.0" : 45.179689552238806,
+                "90.0" : 45.3409223880597,
+                "95.0" : 45.3409223880597,
+                "99.0" : 45.3409223880597,
+                "99.9" : 45.3409223880597,
+                "99.99" : 45.3409223880597,
+                "99.999" : 45.3409223880597,
+                "99.9999" : 45.3409223880597,
+                "100.0" : 45.3409223880597
+            },
+            "scoreUnit" : "ms/op",
+            "rawData" : [
+                [
+                    45.3409223880597,
+                    45.179689552238806,
+                    45.134726865671645
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "dev.xssmusashi.atlas.bench.RegionIoBench.writeTile_includesFsync",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.2.10-hotspot\\bin\\java.exe",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Djava.io.tmpdir=D:\\atlas\\atlas-bench\\build\\tmp\\jmh",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "25.0.2",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "25.0.2+10-LTS",
+        "warmupIterations" : 2,
+        "warmupTime" : "3 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 3,
+        "measurementTime" : "3 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 81.75588108108109,
+            "scoreError" : 8.280163440722513,
+            "scoreConfidence" : [
+                73.47571764035857,
+                90.0360445218036
+            ],
+            "scorePercentiles" : {
+                "0.0" : 81.30178108108107,
+                "50.0" : 81.75635405405406,
+                "90.0" : 82.20950810810811,
+                "95.0" : 82.20950810810811,
+                "99.0" : 82.20950810810811,
+                "99.9" : 82.20950810810811,
+                "99.99" : 82.20950810810811,
+                "99.999" : 82.20950810810811,
+                "99.9999" : 82.20950810810811,
+                "100.0" : 82.20950810810811
+            },
+            "scoreUnit" : "ms/op",
+            "rawData" : [
+                [
+                    82.20950810810811,
+                    81.75635405405406,
+                    81.30178108108107
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "dev.xssmusashi.atlas.bench.TilePipelineBench.generate_batch",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.2.10-hotspot\\bin\\java.exe",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Djava.io.tmpdir=D:\\atlas\\atlas-bench\\build\\tmp\\jmh",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "25.0.2",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "25.0.2+10-LTS",
+        "warmupIterations" : 2,
+        "warmupTime" : "3 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 3,
+        "measurementTime" : "3 s",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "parallelism" : "1"
+        },
+        "primaryMetric" : {
+            "score" : 34836.46076666666,
+            "scoreError" : 17073.71888178277,
+            "scoreConfidence" : [
+                17762.741884883893,
+                51910.17964844943
+            ],
+            "scorePercentiles" : {
+                "0.0" : 33798.9367,
+                "50.0" : 35093.4843,
+                "90.0" : 35616.9613,
+                "95.0" : 35616.9613,
+                "99.0" : 35616.9613,
+                "99.9" : 35616.9613,
+                "99.99" : 35616.9613,
+                "99.999" : 35616.9613,
+                "99.9999" : 35616.9613,
+                "100.0" : 35616.9613
+            },
+            "scoreUnit" : "ms/op",
+            "rawData" : [
+                [
+                    35616.9613,
+                    35093.4843,
+                    33798.9367
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "dev.xssmusashi.atlas.bench.TilePipelineBench.generate_batch",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.2.10-hotspot\\bin\\java.exe",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Djava.io.tmpdir=D:\\atlas\\atlas-bench\\build\\tmp\\jmh",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "25.0.2",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "25.0.2+10-LTS",
+        "warmupIterations" : 2,
+        "warmupTime" : "3 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 3,
+        "measurementTime" : "3 s",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "parallelism" : "2"
+        },
+        "primaryMetric" : {
+            "score" : 17851.3683,
+            "scoreError" : 5374.690238255002,
+            "scoreConfidence" : [
+                12476.678061744995,
+                23226.058538255
+            ],
+            "scorePercentiles" : {
+                "0.0" : 17670.5122,
+                "50.0" : 17692.2761,
+                "90.0" : 18191.3166,
+                "95.0" : 18191.3166,
+                "99.0" : 18191.3166,
+                "99.9" : 18191.3166,
+                "99.99" : 18191.3166,
+                "99.999" : 18191.3166,
+                "99.9999" : 18191.3166,
+                "100.0" : 18191.3166
+            },
+            "scoreUnit" : "ms/op",
+            "rawData" : [
+                [
+                    17670.5122,
+                    17692.2761,
+                    18191.3166
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "dev.xssmusashi.atlas.bench.TilePipelineBench.generate_batch",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.2.10-hotspot\\bin\\java.exe",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Djava.io.tmpdir=D:\\atlas\\atlas-bench\\build\\tmp\\jmh",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "25.0.2",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "25.0.2+10-LTS",
+        "warmupIterations" : 2,
+        "warmupTime" : "3 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 3,
+        "measurementTime" : "3 s",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "parallelism" : "4"
+        },
+        "primaryMetric" : {
+            "score" : 9133.470733333334,
+            "scoreError" : 415.5431126438288,
+            "scoreConfidence" : [
+                8717.927620689505,
+                9549.013845977162
+            ],
+            "scorePercentiles" : {
+                "0.0" : 9117.7761,
+                "50.0" : 9123.0406,
+                "90.0" : 9159.5955,
+                "95.0" : 9159.5955,
+                "99.0" : 9159.5955,
+                "99.9" : 9159.5955,
+                "99.99" : 9159.5955,
+                "99.999" : 9159.5955,
+                "99.9999" : 9159.5955,
+                "100.0" : 9159.5955
+            },
+            "scoreUnit" : "ms/op",
+            "rawData" : [
+                [
+                    9117.7761,
+                    9159.5955,
+                    9123.0406
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "dev.xssmusashi.atlas.bench.TilePipelineBench.generate_batch",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.2.10-hotspot\\bin\\java.exe",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Djava.io.tmpdir=D:\\atlas\\atlas-bench\\build\\tmp\\jmh",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "25.0.2",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "25.0.2+10-LTS",
+        "warmupIterations" : 2,
+        "warmupTime" : "3 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 3,
+        "measurementTime" : "3 s",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "parallelism" : "8"
+        },
+        "primaryMetric" : {
+            "score" : 5198.665866666667,
+            "scoreError" : 171.2195738569036,
+            "scoreConfidence" : [
+                5027.446292809764,
+                5369.885440523571
+            ],
+            "scorePercentiles" : {
+                "0.0" : 5190.069,
+                "50.0" : 5197.2502,
+                "90.0" : 5208.6784,
+                "95.0" : 5208.6784,
+                "99.0" : 5208.6784,
+                "99.9" : 5208.6784,
+                "99.99" : 5208.6784,
+                "99.999" : 5208.6784,
+                "99.9999" : 5208.6784,
+                "100.0" : 5208.6784
+            },
+            "scoreUnit" : "ms/op",
+            "rawData" : [
+                [
+                    5190.069,
+                    5197.2502,
+                    5208.6784
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    }
+]
+
+
