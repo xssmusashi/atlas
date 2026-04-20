@@ -580,10 +580,10 @@ public final class AtlasCommand {
     private static int setThreading(com.mojang.brigadier.context.CommandContext<CommandSourceStack> ctx, boolean on) {
         CommandSourceStack src = ctx.getSource();
         dev.xssmusashi.atlas.mc.bridge.AcceleratedRouter.setThreadingEnabled(on);
-        sendMessage(src, "§6[Atlas] §rparallel chunk dispatch: " + (on ? "§aON" : "§7OFF"));
+        sendMessage(src, "§7[Atlas] §rparallel chunk dispatch: " + (on ? "§aON" : "§7OFF") + " §8(flag only)");
         if (on) {
-            sendMessage(src, "§e  WARNING: bypasses MC's consecutive executor — should accelerate live worldgen.");
-            sendMessage(src, "§e  If chunks corrupt or game crashes, run /atlas accelerate threading off");
+            sendMessage(src, "§c  NOTE v3.1.2: naive bypass disabled — regressed perf 20→11 cps in v3.1.1.");
+            sendMessage(src, "§7  Real Sprint B (TasksForChunk-aware parallelisation) pending; flag is a no-op for now.");
         }
         return 1;
     }

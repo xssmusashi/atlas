@@ -38,15 +38,43 @@ public abstract class ParallelDispatchMixin {
     @Shadow @Final
     private Executor executor;
 
+    /**
+     * NOTE v3.1.2: The naive bypass of consecutive executor REGRESSED performance:
+     * baseline 20 cps → 11 cps with threading on. Reasons:
+     *
+     * 1. ChunkTaskDispatcher's scheduleForExecution chains CompletableFutures per
+     *    chunk (TasksForChunk). When we bypass schedule(), multiple chunk groups
+     *    fire simultaneously, but their internal future chains still serialize per
+     *    chunk → no real per-chunk speedup, just thread thrashing.
+     *
+     * 2. Each chunk gen task internally uses multiple worker threads (light engine,
+     *    biome calc, etc). Our extra parallelism makes these compete for the same
+     *    15-thread pool → cache contention, GC pressure, MC's own systems starved.
+     *
+     * 3. AbstractConsecutiveExecutor maintains internal status state (RUNNING/IDLE/
+     *    queue size) that we left untouched. Bypassing schedule() leaves status
+     *    inconsistent with actual thread usage.
+     *
+     * Real Sprint B requires mixin into ChunkTaskDispatcher.scheduleForExecution
+     * to parallelize ACROSS chunks while preserving WITHIN-chunk ordering. That's
+     * what C2ME does in its c2me-rewrites-chunk-system module — sophisticated work.
+     *
+     * Hook is left in place but disabled: returns immediately if flag set, no
+     * actual parallelisation. /atlas accelerate threading on still toggles the
+     * flag but has no effect on dispatch — user gets a warning instead.
+     */
     @Inject(method = "schedule", at = @At("HEAD"), cancellable = true, require = 0)
     private void atlas$parallelDispatch(Runnable task, CallbackInfo ci) {
-        if (!AcceleratedRouter.isThreadingEnabled()) return;
-        try {
-            executor.execute(task);
-            AcceleratedRouter.recordParallelDispatch();
-            ci.cancel();
-        } catch (Throwable t) {
-            // Fall through to vanilla consecutive queue — never crash
+        // DISABLED in v3.1.2 — naive bypass regresses performance.
+        // Sprint B real implementation pending (TasksForChunk-aware parallelisation).
+        if (false && AcceleratedRouter.isThreadingEnabled()) {
+            try {
+                executor.execute(task);
+                AcceleratedRouter.recordParallelDispatch();
+                ci.cancel();
+            } catch (Throwable t) {
+                // Fall through to vanilla consecutive queue
+            }
         }
     }
 }
