@@ -23,6 +23,10 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.chunk.status.ChunkStatus;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -66,6 +70,9 @@ public final class AtlasCommand {
                             .executes(ctx -> executePregen(ctx, false, IntegerArgumentType.getInteger(ctx, "threads"))))))
                 .then(Commands.literal("map").executes(AtlasCommand::executeMap))
                 .then(Commands.literal("list").executes(AtlasCommand::executeList))
+                .then(Commands.literal("pregen-vanilla")
+                    .then(Commands.argument("radius", IntegerArgumentType.integer(1, 256))
+                        .executes(AtlasCommand::executePregenVanilla)))
         );
     }
 
@@ -379,6 +386,106 @@ public final class AtlasCommand {
             sendMessage(src, "§c[Atlas] list failed: " + io.getMessage());
             return 0;
         }
+        return 1;
+    }
+
+    /**
+     * Pre-generates real vanilla chunks (with Terralith / datapacks fully working).
+     * Atlas posts chunk-load requests to the server's task queue; MC handles
+     * generation through its normal pipeline. Result: real .mca files on disk
+     * that Voxy + the game both see correctly.
+     */
+    private static int executePregenVanilla(com.mojang.brigadier.context.CommandContext<CommandSourceStack> ctx) {
+        CommandSourceStack src = ctx.getSource();
+        int radius = IntegerArgumentType.getInteger(ctx, "radius");
+
+        ServerLevel level;
+        MinecraftServer server;
+        int playerChunkX, playerChunkZ;
+        try {
+            level = src.getLevel();
+            server = level.getServer();
+            if (server == null) {
+                sendMessage(src, "§c[Atlas] no server (run from a real world, not main menu)");
+                return 0;
+            }
+            var pos = src.getPosition();
+            playerChunkX = (int) Math.floor(pos.x() / 16.0);
+            playerChunkZ = (int) Math.floor(pos.z() / 16.0);
+        } catch (Throwable t) {
+            sendMessage(src, "§c[Atlas] cannot get server context: " + t.getMessage());
+            return 0;
+        }
+
+        int side = radius * 2;
+        int total = side * side;
+        sendMessage(src, "§6§l[Atlas] §rvanilla pregen via MC chunkgen: " + total
+            + " chunks (radius " + radius + ", " + side + "×" + side + ") around chunk ("
+            + playerChunkX + "," + playerChunkZ + ")...");
+        sendMessage(src, "§7  uses your loaded worldgen (Terralith / datapacks) — chunks land in real .mca, Voxy will see them.");
+
+        long t0 = System.nanoTime();
+        AtomicInteger done = new AtomicInteger();
+        AtomicInteger errors = new AtomicInteger();
+        AtomicLong nextReportNs = new AtomicLong(t0 + 3_000_000_000L);
+
+        CompletableFuture<?>[] futs = new CompletableFuture[total];
+        int idx = 0;
+        for (int dz = -radius; dz < radius; dz++) {
+            for (int dx = -radius; dx < radius; dx++) {
+                final int cx = playerChunkX + dx;
+                final int cz = playerChunkZ + dz;
+
+                CompletableFuture<?> fut;
+                try {
+                    fut = server.submit(() -> {
+                        try {
+                            level.getChunk(cx, cz, ChunkStatus.FULL, true);
+                        } catch (Throwable t) {
+                            errors.incrementAndGet();
+                        }
+                        return null;
+                    });
+                } catch (Throwable submitErr) {
+                    errors.incrementAndGet();
+                    fut = CompletableFuture.completedFuture(null);
+                }
+
+                futs[idx++] = fut.whenComplete((v, ex) -> {
+                    int n = done.incrementAndGet();
+                    long now = System.nanoTime();
+                    long nextDue = nextReportNs.get();
+                    if (now >= nextDue && nextReportNs.compareAndSet(nextDue, now + 3_000_000_000L)) {
+                        long elapsedMs = (now - t0) / 1_000_000;
+                        double cps = n * 1000.0 / Math.max(1, elapsedMs);
+                        final int snap = n;
+                        final double snapCps = cps;
+                        server.execute(() -> sendMessage(src,
+                            "§7  …" + snap + "/" + total + " chunks (§a"
+                                + String.format("%.1f cps", snapCps) + "§7)"));
+                    }
+                });
+            }
+        }
+
+        CompletableFuture.allOf(futs).whenComplete((v, err) -> {
+            long elapsedMs = (System.nanoTime() - t0) / 1_000_000;
+            int doneCount = done.get();
+            int errorCount = errors.get();
+            double cps = doneCount * 1000.0 / Math.max(1, elapsedMs);
+            server.execute(() -> {
+                sendMessage(src, "§6§l[Atlas] §rvanilla pregen complete:");
+                sendMessage(src, "§7  generated:  §a" + doneCount + " chunks");
+                if (errorCount > 0) {
+                    sendMessage(src, "§7  errors:     §c" + errorCount);
+                }
+                sendMessage(src, "§7  elapsed:    §f" + elapsedMs + " ms");
+                sendMessage(src, "§7  throughput: §a" + String.format("%.1f cps", cps));
+                sendMessage(src, "§7  (real .mca chunks; Voxy and game both see them)");
+            });
+        });
+
+        sendMessage(src, "§7  queued " + total + " chunks; progress every 3s, completion in chat.");
         return 1;
     }
 
