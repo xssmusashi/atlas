@@ -16,4 +16,9 @@ jmh {
     warmup.set("3s")
     resultFormat.set("JSON")
     resultsFile.set(layout.buildDirectory.file("reports/jmh/results.json"))
+    jvmArgs.add("--add-modules=jdk.incubator.vector")
+}
+
+tasks.withType<JavaCompile>().configureEach {
+    options.compilerArgs.add("--add-modules=jdk.incubator.vector")
 }

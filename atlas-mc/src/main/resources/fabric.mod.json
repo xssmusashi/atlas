@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "atlas",
+  "version": "${version}",
+  "name": "Atlas",
+  "description": "Next-generation Minecraft worldgen: tile-based pipeline, JIT-compiled DensityFunction, parallel DAG scheduler.",
+  "authors": ["xssmusashi"],
+  "contact": {
+    "homepage": "https://github.com/xssmusashi/atlas",
+    "sources": "https://github.com/xssmusashi/atlas",
+    "issues": "https://github.com/xssmusashi/atlas/issues"
+  },
+  "license": "Apache-2.0",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["dev.xssmusashi.atlas.mc.AtlasMod"]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": ">=1.21.4",
+    "java": ">=21"
+  },
+  "breaks": {
+    "c2me": "*"
+  }
+}

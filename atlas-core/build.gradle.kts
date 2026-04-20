@@ -12,3 +12,19 @@ dependencies {
     testImplementation("org.assertj:assertj-core:${property("assertj.version")}")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
+
+// Vector API (jdk.incubator.vector) — preview module in JDK 25.
+val vectorApiArgs = listOf("--add-modules=jdk.incubator.vector")
+
+tasks.withType<JavaCompile>().configureEach {
+    options.compilerArgs.addAll(vectorApiArgs)
+}
+
+tasks.withType<Test>().configureEach {
+    jvmArgs(vectorApiArgs)
+}
+
+tasks.withType<Javadoc>().configureEach {
+    (options as org.gradle.external.javadoc.StandardJavadocDocletOptions)
+        .addBooleanOption("-add-modules=jdk.incubator.vector", true)
+}

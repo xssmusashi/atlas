@@ -1,0 +1,6 @@
+# Benchmark: dev.xssmusashi.atlas.bench.VectorVsScalarSliceBench.scalar_slice256
+Result "dev.xssmusashi.atlas.bench.VectorVsScalarSliceBench.scalar_slice256":
+# Benchmark: dev.xssmusashi.atlas.bench.VectorVsScalarSliceBench.vector_slice256
+Result "dev.xssmusashi.atlas.bench.VectorVsScalarSliceBench.vector_slice256":
+VectorVsScalarSliceBench.scalar_slice256                   N/A  thrpt    3     3375.081 ±    638.719  ops/ms
+VectorVsScalarSliceBench.vector_slice256                   N/A  thrpt    3     8404.603 ±    622.837  ops/ms
