@@ -24,7 +24,9 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.TicketType;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
 import java.util.ArrayList;
@@ -471,79 +473,87 @@ public final class AtlasCommand {
         VanillaPregenState prev = activePregen.getAndSet(state);
         if (prev != null) prev.cancelled().set(true);
 
-        // Phase 1: force-load chunks BATCHED across server ticks. Adding 16k
-        // tickets in one server.execute freezes the tick loop; instead we
-        // schedule batches of FORCE_LOAD_BATCH_SIZE per tick via repeating
-        // server.execute. Server stays responsive throughout queueing.
-        scheduleBatchedForceLoad(server, level, positions, state, 0);
+        // v3.0 path: use ServerChunkCache.addTicketAndLoadWithRadius which is
+        // ASYNC — returns a CompletableFuture per chunk. No more polling.
+        ServerChunkCache cache = level.getChunkSource();
+        AtomicInteger doneCounter = new AtomicInteger();
+        AtomicLong nextReportNs = new AtomicLong(t0 + 3_000_000_000L);
+        CompletableFuture<?>[] loadFutures = new CompletableFuture[total];
 
-        // Phase 2: poll for completion in a daemon thread.
-        Thread poller = new Thread(() -> {
-            try {
-                while (true) {
-                    Thread.sleep(2000);
-                    if (state.cancelled().get()) {
-                        // Cleanup whatever we managed to force-load.
-                        server.execute(() -> {
-                            try {
-                                for (ChunkPos pos : positions) {
-                                    level.setChunkForced(pos.x(), pos.z(), false);
-                                }
-                            } catch (Throwable ignored) {}
-                            sendMessage(src, "§e[Atlas] vanilla pregen cancelled.");
-                            activePregen.compareAndSet(state, null);
-                        });
-                        return;
-                    }
-                    int loaded = 0;
-                    for (ChunkPos pos : positions) {
-                        if (level.hasChunk(pos.x(), pos.z())) loaded++;
-                    }
-                    long now = System.nanoTime();
-                    long elapsedMs = (now - t0) / 1_000_000;
+        // Submit in batches across server ticks so adding tickets doesn't freeze
+        // the tick loop. Each batch's futures complete independently as MC's
+        // chunk system processes them through its internal worker pool.
+        scheduleAsyncTicketLoad(server, cache, positions, state, loadFutures, 0,
+            doneCounter, nextReportNs, t0, total, src);
 
-                    if (loaded != reportedLoaded.get()) {
-                        reportedLoaded.set(loaded);
-                        double cps = loaded * 1000.0 / Math.max(1, elapsedMs);
-                        final int snap = loaded;
-                        final double snapCps = cps;
-                        server.execute(() -> sendMessage(src,
-                            "§7  …" + snap + "/" + total + " chunks (§a"
-                                + String.format("%.1f cps", snapCps) + "§7)"));
-                    }
-
-                    if (loaded >= total) {
-                        final double finalCps = loaded * 1000.0 / Math.max(1, elapsedMs);
-                        final int finalLoaded = loaded;
-                        final long finalElapsed = elapsedMs;
-                        server.execute(() -> {
-                            try {
-                                for (ChunkPos pos : positions) {
-                                    level.setChunkForced(pos.x(), pos.z(), false);
-                                }
-                            } catch (Throwable ignored) {}
-                            sendMessage(src, "§6§l[Atlas] §rvanilla pregen complete:");
-                            sendMessage(src, "§7  generated:  §a" + finalLoaded + " chunks");
-                            sendMessage(src, "§7  elapsed:    §f" + finalElapsed + " ms");
-                            sendMessage(src, "§7  throughput: §a" + String.format("%.1f cps", finalCps));
-                            sendMessage(src, "§7  (real .mca chunks; Voxy and game both see them)");
-                            activePregen.compareAndSet(state, null);
-                        });
-                        return;
-                    }
-                }
-            } catch (InterruptedException ignored) {
-                Thread.currentThread().interrupt();
-            } catch (Throwable t) {
-                server.execute(() -> sendMessage(src, "§c[Atlas] poller failed: " + t.getMessage()));
-            }
-        }, "atlas-vanilla-pregen-poller");
-        poller.setDaemon(true);
-        poller.start();
-
-        sendMessage(src, "§7  queueing in batches of " + FORCE_LOAD_BATCH_SIZE
-            + "/tick to keep server responsive. /atlas cancel to abort.");
+        sendMessage(src, "§7  v3.0 async path: dispatching via addTicketAndLoadWithRadius (no polling).");
         return 1;
+    }
+
+    /**
+     * v3.0 async loader — schedules batches of MC's native async ticket-and-load
+     * across ticks. Each batch returns CompletableFutures that complete when
+     * chunks reach FULL status. We aggregate them and report progress on each
+     * batch completion.
+     */
+    private static void scheduleAsyncTicketLoad(MinecraftServer server, ServerChunkCache cache,
+                                                 List<ChunkPos> positions, VanillaPregenState state,
+                                                 CompletableFuture<?>[] loadFutures, int startIdx,
+                                                 AtomicInteger doneCounter, AtomicLong nextReportNs,
+                                                 long t0, int total, CommandSourceStack src) {
+        if (state.cancelled().get()) return;
+        server.execute(() -> {
+            if (state.cancelled().get()) return;
+            int end = Math.min(startIdx + FORCE_LOAD_BATCH_SIZE, positions.size());
+            for (int i = startIdx; i < end; i++) {
+                ChunkPos pos = positions.get(i);
+                try {
+                    CompletableFuture<?> fut = cache.addTicketAndLoadWithRadius(
+                        TicketType.UNKNOWN, pos, 0);
+                    loadFutures[i] = fut;
+                    fut.whenComplete((r, ex) -> {
+                        int n = doneCounter.incrementAndGet();
+                        long now = System.nanoTime();
+                        long nextDue = nextReportNs.get();
+                        if (now >= nextDue && nextReportNs.compareAndSet(nextDue, now + 3_000_000_000L)) {
+                            long elapsedMs = (now - t0) / 1_000_000;
+                            double cps = n * 1000.0 / Math.max(1, elapsedMs);
+                            final int snap = n;
+                            final double snapCps = cps;
+                            server.execute(() -> sendMessage(src,
+                                "§7  …" + snap + "/" + total + " chunks (§a"
+                                    + String.format("%.1f cps", snapCps) + "§7)"));
+                        }
+                        if (n >= total) {
+                            // All done — report final and cleanup tickets.
+                            long elapsedFinal = (System.nanoTime() - t0) / 1_000_000;
+                            final double finalCps = n * 1000.0 / Math.max(1, elapsedFinal);
+                            final int finalN = n;
+                            final long finalElapsed = elapsedFinal;
+                            server.execute(() -> {
+                                try {
+                                    for (ChunkPos p : positions) {
+                                        cache.removeTicketWithRadius(TicketType.UNKNOWN, p, 0);
+                                    }
+                                } catch (Throwable ignored) {}
+                                sendMessage(src, "§6§l[Atlas] §rvanilla pregen complete (v3 async):");
+                                sendMessage(src, "§7  generated:  §a" + finalN + " chunks");
+                                sendMessage(src, "§7  elapsed:    §f" + finalElapsed + " ms");
+                                sendMessage(src, "§7  throughput: §a" + String.format("%.1f cps", finalCps));
+                                sendMessage(src, "§7  (real .mca chunks; Voxy and game both see them)");
+                                activePregen.compareAndSet(state, null);
+                            });
+                        }
+                    });
+                } catch (Throwable t) {
+                    doneCounter.incrementAndGet();
+                }
+            }
+            if (end < positions.size()) {
+                scheduleAsyncTicketLoad(server, cache, positions, state, loadFutures, end,
+                    doneCounter, nextReportNs, t0, total, src);
+            }
+        });
     }
 
     /** Recursively schedule batched force-load on the server thread, one batch per tick. */
